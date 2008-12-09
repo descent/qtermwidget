@@ -22,11 +22,23 @@
 #include <QApplication>
 
 #include "qtermwidget.h"
+#include "mainwindow.h"
+
+#include <QLabel>
+
 
 int main(int argc, char *argv[])
 {
+#if 1
+    //Q_INIT_RESOURCE(application);
+
     QApplication app(argc, argv);
+#if 1
+    MainWindow *mainWindow = new MainWindow();
+#else
     QMainWindow *mainWindow = new QMainWindow();
+#endif
+    QLabel *l = new QLabel();
 
     QTermWidget *console = new QTermWidget();
     
@@ -39,13 +51,27 @@ int main(int argc, char *argv[])
     //console->setColorScheme(COLOR_SCHEME_BLACK_ON_LIGHT_YELLOW);
     console->setScrollBarPosition(QTermWidget::ScrollBarRight);
     
+#if 1
     mainWindow->setCentralWidget(console);
+#else
+    mainWindow->setCentralWidget(l);
+#endif
     mainWindow->resize(802, 610);
     
     QObject::connect(console, SIGNAL(finished()), mainWindow, SLOT(close()));
 
     mainWindow->show();    
     return app.exec();
+#else
+    QApplication app(argc, argv);
+    MainWindow mainWin;
+    QLabel *l = new QLabel();
+    QTermWidget *console = new QTermWidget(1, &mainWin);
+    mainWin.setCentralWidget(console);
+    //mainWin.setCentralWidget(l);
+    mainWin.show();
+    return app.exec();
+#endif
 } 
 
   

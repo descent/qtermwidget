@@ -17,7 +17,9 @@ CONFIG(debug, debug|release) {
     LIBS 	+= -L.. ../libqtermwidget.a
 }
 
-SOURCES 	= main.cpp 
+HEADERS       = main_window.h
+SOURCES 	= main.cpp main_window.cpp
+#SOURCES 	= main.cpp 
 
 INCLUDEPATH 	= ../lib
 
