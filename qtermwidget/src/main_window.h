@@ -2,12 +2,17 @@
 #define MAIN_WINDOW_H
 
 #include <QMainWindow>
+//#include <QAction>
+//#include <QMenu>
+//#include <QMenu>
 
-QT_BEGIN_NAMESPACE
+#if 1
+//QT_BEGIN_NAMESPACE
 class QAction;
 class QMenu;
 class QTextEdit;
-QT_END_NAMESPACE
+//QT_END_NAMESPACE
+#endif
 
 //! [0]
 class MainWindow : public QMainWindow

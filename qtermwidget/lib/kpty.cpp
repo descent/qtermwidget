@@ -485,11 +485,13 @@ void KPty::login(const char *user, const char *remotehost)
     endutxent();
     updwtmpx(_PATH_WTMPX, &l_struct);
 #  else
+#if 0
     utmpname(_PATH_UTMP);
     setutent();
     pututline(&l_struct);
     endutent();
     updwtmp(_PATH_WTMP, &l_struct);
+#endif
 #  endif
 # endif
 #endif
@@ -530,6 +532,7 @@ void KPty::logout()
 
     strncpy(l_struct.ut_line, str_ptr, sizeof(l_struct.ut_line));
 
+#if 0
 #  ifdef HAVE_UTMPX
     utmpxname(_PATH_UTMPX);
     setutxent();
@@ -558,6 +561,7 @@ void KPty::logout()
     }
     endutent();
 #  endif
+# endif
 # endif
 #endif
 }
