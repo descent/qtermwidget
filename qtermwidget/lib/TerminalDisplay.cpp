@@ -2282,6 +2282,11 @@ void TerminalDisplay::setFlowControlWarningEnabled( bool enable )
 
 void TerminalDisplay::keyPressEvent( QKeyEvent* event )
 {
+#ifdef DEBUG_KEY
+  qDebug("in TerminalDisplay::keyPressEvent");
+  qDebug("event->text() legnth: %x", ((event->text()).length() ) );
+  qDebug("event->text(): %x", ((event->text()).toStdString().c_str())[0] );
+#endif
 //qDebug("%s %d keyPressEvent and key is %d", __FILE__, __LINE__, event->key());
 
     bool emitKeyPressSignal = true;
