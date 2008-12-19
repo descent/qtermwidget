@@ -24,8 +24,10 @@ public:
   private:
     QMenu *setting_menu_;
     QAction *change_font_;
+    QAction *set_encode_;
   private slots:
     void change_font_slot();
+    void set_encode_slot();
 #if 0
     //virtual ~MainWindow();
 

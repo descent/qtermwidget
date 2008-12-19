@@ -44,10 +44,31 @@
 MainWindow::MainWindow():QMainWindow()
 {
   change_font_ = new QAction(tr("&Font"), this);
+  set_encode_ = new QAction(tr("&Encode"), this);
   connect(change_font_, SIGNAL(triggered()), this, SLOT(change_font_slot()));
+  connect(set_encode_, SIGNAL(triggered()), this, SLOT(set_encode_slot()));
 
   setting_menu_ = menuBar()->addMenu(tr("&Setting"));
   setting_menu_->addAction(change_font_);
+  setting_menu_->addAction(set_encode_);
+}
+
+void MainWindow::set_encode_slot()
+{
+  static int i = 0;
+
+	
+  if (i)
+  {
+    (dynamic_cast<QTermWidget *>(centralWidget()))->set_codec(QTextCodec::codecForName("big5"));
+    qDebug("big5");
+  }
+  else
+  {
+    (dynamic_cast<QTermWidget *>(centralWidget()))->set_codec(QTextCodec::codecForName("utf8"));
+    qDebug("utf8");
+  }
+  ++i;
 }
 
 void MainWindow::change_font_slot()

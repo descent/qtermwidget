@@ -28,6 +28,8 @@ enum COLOR_SCHEME {     COLOR_SCHEME_WHITE_ON_BLACK	= 1,
 		        COLOR_SCHEME_GREEN_ON_BLACK,
 		        COLOR_SCHEME_BLACK_ON_LIGHT_YELLOW };
 
+class QTextCodec;
+
 class QTermWidget : public QWidget
 {
     Q_OBJECT
@@ -81,6 +83,8 @@ public:
     
     // Send some text to terminal
     void sendText(QString &text);
+  void set_codec(QTextCodec *qtc);
+  //void get_codec();
             
 signals:
     void finished();
@@ -94,6 +98,7 @@ protected slots:
 private:
     void init();    
     TermWidgetImpl *m_impl;
+  QTextCodec *text_codec_;
 };
 
 

@@ -57,7 +57,8 @@ Session *TermWidgetImpl::createSession()
     session->setArguments(args);
     session->setAutoClose(true);
 		    
-    session->setCodec(QTextCodec::codecForName("UTF-8"));
+    //session->setCodec(QTextCodec::codecForName("UTF-8"));
+    session->setCodec(QTextCodec::codecForName("big5"));
 			
     session->setFlowControlEnabled(true);
     session->setHistoryType(HistoryTypeBuffer(1000));
@@ -211,6 +212,10 @@ void QTermWidget::resizeEvent(QResizeEvent*)
 }
 
 
+void QTermWidget::set_codec(QTextCodec *qtc)
+{
+  m_impl->m_session->setCodec(qtc);
+}
 
 void QTermWidget::sessionFinished()
 {
