@@ -43,8 +43,10 @@ int main(int argc, char *argv[])
     QTermWidget *console = new QTermWidget();
     
     QFont font = QApplication::font();
-    font.setFamily("Terminus");
-    font.setPointSize(12);
+    //QFont font = QFont("Monospace", 14);
+    //font.setFamily("Terminus");
+    font.setFamily("Monospace");
+    font.setPointSize(14);
     
     console->setTerminalFont(font);
     
