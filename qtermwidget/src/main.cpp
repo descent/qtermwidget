@@ -59,6 +59,8 @@ int main(int argc, char *argv[])
     mainWindow->setCentralWidget(l);
 #endif
     mainWindow->resize(802, 610);
+
+    mainWindow->utf8_enc();
     
     QObject::connect(console, SIGNAL(finished()), mainWindow, SLOT(close()));
 

@@ -37,6 +37,7 @@
 
 //! [0]
 #include <QtGui>
+#include <QActionGroup>
 
 #include "main_window.h"
 #include "qtermwidget.h"
@@ -51,10 +52,50 @@ MainWindow::MainWindow():QMainWindow()
   setting_menu_ = menuBar()->addMenu(tr("&Setting"));
   setting_menu_->addAction(change_font_);
   setting_menu_->addAction(set_encode_);
+
+  big5_enc_ = new QAction(tr("BIG5"), this);
+  utf8_enc_ = new QAction(tr("UTF-8"), this);
+  big5_enc_->setCheckable(true);
+  utf8_enc_->setCheckable(true);
+
+  //select_encoding_ = new QAction(tr("select encoding"), this);
+  //select_encoding_ = menuBar()->addMenu(tr("select encoding") );
+  //encoding_menu_ = new QMenu("&Encoding", this);
+  encoding_menu_ = menuBar()->addMenu(tr("select encoding") );
+  //encoding_menu_ = new QMenu("&Encoding", this);
+  input_enc_g_ = new QActionGroup(this);
+  enc_g_ = new QActionGroup(this);
+  //encoding_menu_->addAction(select_encoding_);
+  encoding_menu_->addAction(big5_enc_);
+  encoding_menu_->addAction(utf8_enc_);
+  enc_g_->addAction(big5_enc_);
+  enc_g_->addAction(utf8_enc_);
+  connect(big5_enc_, SIGNAL(triggered()), this, SLOT(big5_enc() ));
+  connect(utf8_enc_, SIGNAL(triggered()), this, SLOT(utf8_enc() ));
+  //utf8_enc_->setCheckable(true);
+  //utf8_enc();
+}
+
+void MainWindow::big5_enc()
+{
+  static QTextCodec *codec=QTextCodec::codecForName("big5");
+  qDebug("big5");
+  (dynamic_cast<QTermWidget *>(centralWidget()))->set_codec(codec);
+
+  big5_enc_->setChecked(true);
+}
+void MainWindow::utf8_enc()
+{
+  static QTextCodec *codec=QTextCodec::codecForName("utf8");
+
+  qDebug("utf8");
+  (dynamic_cast<QTermWidget *>(centralWidget()))->set_codec(codec);
+  utf8_enc_->setChecked(true);
 }
 
 void MainWindow::set_encode_slot()
 {
+#if 0
   static int i = 0;
 
 	
@@ -65,10 +106,10 @@ void MainWindow::set_encode_slot()
   }
   else
   {
-    (dynamic_cast<QTermWidget *>(centralWidget()))->set_codec(QTextCodec::codecForName("utf8"));
     qDebug("utf8");
   }
   ++i;
+#endif
 }
 
 void MainWindow::change_font_slot()

@@ -9,6 +9,7 @@
 #if 1
 //QT_BEGIN_NAMESPACE
 class QAction;
+class QActionGroup;
 class QMenu;
 class QTextEdit;
 //QT_END_NAMESPACE
@@ -25,6 +26,13 @@ public:
     QMenu *setting_menu_;
     QAction *change_font_;
     QAction *set_encode_;
+    QAction *big5_enc_, *utf8_enc_;
+    QMenu *encoding_menu_;
+    QActionGroup *input_enc_g_;
+    QActionGroup *enc_g_;
+  public slots:
+    void big5_enc();
+    void utf8_enc();
   private slots:
     void change_font_slot();
     void set_encode_slot();
