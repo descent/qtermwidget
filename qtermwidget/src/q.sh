@@ -3,7 +3,8 @@
 QT=""
 
 if [ "$1" = "" ] ; then
-  echo "need 1 argument "
+  echo "usage:"
+  echo "$0 src.pro [QTVERSION]"
   exit 1
 fi
 
