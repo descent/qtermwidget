@@ -102,3 +102,51 @@ void TerminalDisplay::updateImage()
 }
 
 so repaint
+
+
+
+parse terminal sequence char
+
+void Vt102Emulation::receiveChar(int cc)
+{
+}
+
+
+
+key event
+
+void TerminalDisplay::keyPressEvent( QKeyEvent* event )
+{
+        emit keyPressedSignal(event);
+}
+
+void Session::addView(TerminalDisplay* widget)
+{
+     Q_ASSERT( !_views.contains(widget) );
+
+    _views.append(widget);
+
+    if ( _emulation != 0 )
+    {
+        // connect emulation - view signals and slots
+        connect( widget , SIGNAL(keyPressedSignal(QKeyEvent*)) , _emulation ,
+               SLOT(sendKeyEvent(QKeyEvent*)) );
+        connect( widget , SIGNAL(mouseSignal(int,int,int,int)) , _emulation ,
+               SLOT(sendMouseEvent(int,int,int,int)) );
+}
+
+void Emulation::sendKeyEvent( QKeyEvent* ev )
+{
+}
+
+Vt102Emulation::sendKeyEvent(QKeyEvent* event)
+{
+}
+
+In the program, call Vt102Emulation::sendKeyEvent(QKeyEvent* event)
+
+
+
+
+
+
