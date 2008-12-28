@@ -297,6 +297,10 @@ void Vt102Emulation::receiveChar(int cc)
   int i;
   if (cc == 127) return; //VT100: ignore.
 
+  //static int c=0;
+
+  //qDebug("%d: %c ## %x", c++, cc, cc);
+
   if (ces(    CTL))
   { // DEC HACK ALERT! Control Characters are allowed *within* esc sequences in VT100
     // This means, they do neither a resetToken nor a pushToToken. Some of them, do
@@ -313,8 +317,9 @@ void Vt102Emulation::receiveChar(int cc)
 
   if (getMode(MODE_Ansi)) // decide on proper action
   {
+    //qDebug("getMode(MODE_Ansi)");
     if (lec(1,0,ESC)) {                                                       return; }
-    if (lec(1,0,ESC+128)) { s[0] = ESC; receiveChar('[');                   return; }
+    if (lec(1,0,ESC+128)) { /*qDebug("ESC+128"); sleep(10); */ s[0] = ESC; receiveChar('[');                   return; }
     if (les(2,1,GRP)) {                                                       return; }
     if (Xte         ) { XtermHack();                            resetToken(); return; }
     if (Xpe         ) {                                                       return; }
@@ -352,6 +357,7 @@ void Vt102Emulation::receiveChar(int cc)
   }
   else // mode VT52
   {
+    //qDebug("not getMode(MODE_Ansi)");
     if (lec(1,0,ESC))                                                      return;
     if (les(1,0,CHR)) { tau( TY_CHR(       ), s[0],  0); resetToken(); return; }
     if (lec(2,1,'Y'))                                                      return;
@@ -953,6 +959,7 @@ void Vt102Emulation::sendKeyEvent( QKeyEvent* event )
     // lookup key binding
     if ( _keyTranslator )
     {
+      //qDebug("_keyTranslator");
     KeyboardTranslator::Entry entry = _keyTranslator->findEntry( 
                                                 event->key() , 
                                                 modifiers,
@@ -987,10 +994,35 @@ void Vt102Emulation::sendKeyEvent( QKeyEvent* event )
         else
             textToSend += _codec->fromUnicode(event->text());
 
+#if 1
+    switch (event->key())
+    {
+      case Qt::Key_Up:
+      {
+        char k_text[]={0x1b, 0x5b, 0x41};
+
+        sendData(k_text, sizeof(k_text)/sizeof(char) );
+        break;
+      }
+      case Qt::Key_Down:
+      {
+        char k_text[]={0x1b, 0x5b, 0x42};
+
+        sendData(k_text, sizeof(k_text)/sizeof(char) );
+        break;
+      }
+      default:
+      {
         sendData( textToSend.constData() , textToSend.length() );
+        break;
+      }
+    }
+
+#endif
     }
     else
     {
+      //qDebug("no _keyTranslator");
         // print an error message to the terminal if no key translator has been
         // set
         QString translatorError =  ("No keyboard translator available.  "
