@@ -997,6 +997,20 @@ void Vt102Emulation::sendKeyEvent( QKeyEvent* event )
 #if 1
     switch (event->key())
     {
+      case Qt::Key_Left:
+      {
+        char k_text[]={0x1b, 0x5b, 0x44};
+
+        sendData(k_text, sizeof(k_text)/sizeof(char) );
+        break;
+      }
+      case Qt::Key_Right:
+      {
+        char k_text[]={0x1b, 0x5b, 0x43};
+
+        sendData(k_text, sizeof(k_text)/sizeof(char) );
+        break;
+      }
       case Qt::Key_Up:
       {
         char k_text[]={0x1b, 0x5b, 0x41};
