@@ -49,43 +49,46 @@
   menu->addAction(qa_obj); \
 }
 
+#define SET_KEY_SHORTCUT(keybind, qa_obj) \
+{ \
+  key_shortcuts.clear(); \
+  key_shortcuts << tr(keybind); \
+  qa_obj->setShortcuts(key_shortcuts); \
+}
+
 MainWindow::MainWindow():QMainWindow()
 {
+  QList<QKeySequence> key_shortcuts;
+
   edit_menu_ = menuBar()->addMenu(tr("&Edit"));
 
   ADD_ACTION(edit_menu_, copy_, "&copy", copy_slot)
   ADD_ACTION(edit_menu_, paste_, "&paste", paste_slot)
 
-  change_font_ = new QAction(tr("&Font"), this);
-  set_encode_ = new QAction(tr("&Encode"), this);
-  connect(change_font_, SIGNAL(triggered()), this, SLOT(change_font_slot()));
-  connect(set_encode_, SIGNAL(triggered()), this, SLOT(set_encode_slot()));
+  SET_KEY_SHORTCUT("Ctrl+Shift+C", copy_);
+  SET_KEY_SHORTCUT("Ctrl+Shift+V", paste_);
 
   setting_menu_ = menuBar()->addMenu(tr("&Setting"));
-  setting_menu_->addAction(change_font_);
-  setting_menu_->addAction(set_encode_);
 
-  big5_enc_ = new QAction(tr("BIG5"), this);
-  utf8_enc_ = new QAction(tr("UTF-8"), this);
-  big5_enc_->setCheckable(true);
-  utf8_enc_->setCheckable(true);
+  ADD_ACTION(setting_menu_, change_font_, "&Font", change_font_slot);
 
-  //select_encoding_ = new QAction(tr("select encoding"), this);
-  //select_encoding_ = menuBar()->addMenu(tr("select encoding") );
-  //encoding_menu_ = new QMenu("&Encoding", this);
-  encoding_menu_ = menuBar()->addMenu(tr("select encoding") );
-  //encoding_menu_ = new QMenu("&Encoding", this);
+  SET_KEY_SHORTCUT("Ctrl+F", change_font_);
+
+  encoding_menu_ = menuBar()->addMenu(tr("E&ncoding") );
+
+  ADD_ACTION(encoding_menu_, big5_enc_, "BIG5", big5_enc)
+  ADD_ACTION(encoding_menu_, utf8_enc_, "UTF8", utf8_enc)
+
+  SET_KEY_SHORTCUT("Ctrl+5", big5_enc_);
+  SET_KEY_SHORTCUT("Ctrl+8", utf8_enc_);
+
   input_enc_g_ = new QActionGroup(this);
   enc_g_ = new QActionGroup(this);
-  //encoding_menu_->addAction(select_encoding_);
-  encoding_menu_->addAction(big5_enc_);
-  encoding_menu_->addAction(utf8_enc_);
   enc_g_->addAction(big5_enc_);
   enc_g_->addAction(utf8_enc_);
-  connect(big5_enc_, SIGNAL(triggered()), this, SLOT(big5_enc() ));
-  connect(utf8_enc_, SIGNAL(triggered()), this, SLOT(utf8_enc() ));
-  //utf8_enc_->setCheckable(true);
-  //utf8_enc();
+
+  big5_enc_->setCheckable(true);
+  utf8_enc_->setCheckable(true);
 }
 
 void MainWindow::copy_slot()
