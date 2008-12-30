@@ -109,7 +109,9 @@ QTermWidget::QTermWidget(int startnow, QWidget *parent)
     
     this->setFocusProxy(m_impl->m_terminalDisplay);
 
+#if 0
   _line_edit = new QLineEdit(this);
+#endif
 }
 
 void QTermWidget::startShellProgram()
