@@ -24,6 +24,8 @@ public:
     MainWindow();
   private:
     QMenu *setting_menu_;
+    QMenu *edit_menu_;
+    QAction *copy_, *paste_;
     QAction *change_font_;
     QAction *set_encode_;
     QAction *big5_enc_, *utf8_enc_;
@@ -33,6 +35,8 @@ public:
   public slots:
     void big5_enc();
     void utf8_enc();
+    void copy_slot();
+    void paste_slot();
   private slots:
     void change_font_slot();
     void set_encode_slot();

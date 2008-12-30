@@ -42,8 +42,20 @@
 #include "main_window.h"
 #include "qtermwidget.h"
 
+#define ADD_ACTION(menu, qa_obj, qa_name, slot) \
+{ \
+  qa_obj = new QAction(tr(qa_name), this); \
+  connect(qa_obj, SIGNAL(triggered()), this, SLOT(slot())); \
+  menu->addAction(qa_obj); \
+}
+
 MainWindow::MainWindow():QMainWindow()
 {
+  edit_menu_ = menuBar()->addMenu(tr("&Edit"));
+
+  ADD_ACTION(edit_menu_, copy_, "&copy", copy_slot)
+  ADD_ACTION(edit_menu_, paste_, "&paste", paste_slot)
+
   change_font_ = new QAction(tr("&Font"), this);
   set_encode_ = new QAction(tr("&Encode"), this);
   connect(change_font_, SIGNAL(triggered()), this, SLOT(change_font_slot()));
@@ -74,6 +86,18 @@ MainWindow::MainWindow():QMainWindow()
   connect(utf8_enc_, SIGNAL(triggered()), this, SLOT(utf8_enc() ));
   //utf8_enc_->setCheckable(true);
   //utf8_enc();
+}
+
+void MainWindow::copy_slot()
+{
+  qDebug("copy_slot");
+  (dynamic_cast<QTermWidget *>(centralWidget()))->copy_to_clipboard();
+}
+
+void MainWindow::paste_slot()
+{
+  qDebug("paste_slot");
+  (dynamic_cast<QTermWidget *>(centralWidget()))->paste_from_clipboard();
 }
 
 void MainWindow::big5_enc()
