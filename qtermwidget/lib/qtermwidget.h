@@ -22,6 +22,8 @@
 
 #include <QtGui>
 
+#include <QLineEdit>
+
 struct TermWidgetImpl;
 
 enum COLOR_SCHEME {     COLOR_SCHEME_WHITE_ON_BLACK	= 1,
@@ -33,7 +35,9 @@ class QTextCodec;
 class QTermWidget : public QWidget
 {
     Q_OBJECT
-public:
+  public:
+    void copy_to_clipboard();
+    void paste_from_clipboard();
     
     enum ScrollBarPosition
     {
@@ -50,6 +54,8 @@ public:
     QTermWidget(int startnow = 1, //start shell programm immediatelly
 		QWidget *parent = 0);
     ~QTermWidget();
+
+
 
     //start shell program if it was not started in constructor
     void startShellProgram();
@@ -95,10 +101,11 @@ protected:
 protected slots:
     void sessionFinished();        
     
-private:
+  private:
     void init();    
     TermWidgetImpl *m_impl;
-  QTextCodec *text_codec_;
+    QTextCodec *text_codec_;
+    QLineEdit *_line_edit;
 };
 
 

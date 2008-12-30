@@ -84,6 +84,14 @@ TerminalDisplay *TermWidgetImpl::createTerminalDisplay(Session *session, QWidget
     return display;
 }
 
+void QTermWidget::copy_to_clipboard()
+{
+  m_impl->m_terminalDisplay->copyClipboard();
+}
+void QTermWidget::paste_from_clipboard()
+{    
+  m_impl->m_terminalDisplay->pasteClipboard();
+}
 
 QTermWidget::QTermWidget(int startnow, QWidget *parent)
 :QWidget(parent)
@@ -100,6 +108,8 @@ QTermWidget::QTermWidget(int startnow, QWidget *parent)
     m_impl->m_terminalDisplay->resize(this->size());
     
     this->setFocusProxy(m_impl->m_terminalDisplay);
+
+  _line_edit = new QLineEdit(this);
 }
 
 void QTermWidget::startShellProgram()
