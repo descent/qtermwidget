@@ -12,17 +12,24 @@ class QAction;
 class QActionGroup;
 class QMenu;
 class QTextEdit;
+class QTabWidget;
+class QTermWidget;
+
 //QT_END_NAMESPACE
 #endif
 
 //! [0]
 class MainWindow : public QMainWindow
 {
-    Q_OBJECT
+  Q_OBJECT
 
-public:
+  public:
     MainWindow();
+    QTermWidget *create_qterm_widget();
+    void new_tab();
   private:
+    QTabWidget *tab_widget_;
+
     QMenu *setting_menu_;
     QMenu *edit_menu_;
     QAction *copy_, *paste_;
@@ -37,6 +44,7 @@ public:
     void utf8_enc();
     void copy_slot();
     void paste_slot();
+    bool close();
   private slots:
     void change_font_slot();
     void set_encode_slot();

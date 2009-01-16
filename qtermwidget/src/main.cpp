@@ -40,6 +40,7 @@ int main(int argc, char *argv[])
 #endif
     QLabel *l = new QLabel();
 
+#if 0
     QTermWidget *console = new QTermWidget();
     
     QFont font = QApplication::font();
@@ -58,11 +59,13 @@ int main(int argc, char *argv[])
 #else
     mainWindow->setCentralWidget(l);
 #endif
+#endif
+
     mainWindow->resize(802, 610);
 
-    mainWindow->utf8_enc();
+    //mainWindow->utf8_enc();
     
-    QObject::connect(console, SIGNAL(finished()), mainWindow, SLOT(close()));
+    //QObject::connect(console, SIGNAL(finished()), mainWindow, SLOT(close()));
 
     mainWindow->show();    
     return app.exec();

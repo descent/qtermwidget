@@ -42,6 +42,10 @@
 #include "main_window.h"
 #include "qtermwidget.h"
 
+#include <cstdio>
+
+using namespace std;
+
 #define ADD_ACTION(menu, qa_obj, qa_name, slot) \
 { \
   qa_obj = new QAction(tr(qa_name), this); \
@@ -56,8 +60,18 @@
   qa_obj->setShortcuts(key_shortcuts); \
 }
 
+
 MainWindow::MainWindow():QMainWindow()
 {
+  tab_widget_ = new QTabWidget;
+
+  setCentralWidget(tab_widget_);
+
+  for (int i=0 ; i < 5 ; ++i)
+  {
+    new_tab();
+  }
+
   QList<QKeySequence> key_shortcuts;
 
   edit_menu_ = menuBar()->addMenu(tr("&Edit"));
@@ -107,7 +121,9 @@ void MainWindow::big5_enc()
 {
   static QTextCodec *codec=QTextCodec::codecForName("big5");
   qDebug("big5");
-  (dynamic_cast<QTermWidget *>(centralWidget()))->set_codec(codec);
+  //(dynamic_cast<QTermWidget *>(centralWidget()))->set_codec(codec);
+  if (tab_widget_->count()!=0)
+    (dynamic_cast<QTermWidget *> (tab_widget_->currentWidget()))->set_codec(codec);
 
   big5_enc_->setChecked(true);
 }
@@ -116,8 +132,47 @@ void MainWindow::utf8_enc()
   static QTextCodec *codec=QTextCodec::codecForName("utf8");
 
   qDebug("utf8");
-  (dynamic_cast<QTermWidget *>(centralWidget()))->set_codec(codec);
+  //(dynamic_cast<QTermWidget *>(centralWidget()))->set_codec(codec);
+  if (tab_widget_->count()!=0)
+    (dynamic_cast<QTermWidget *> (tab_widget_->currentWidget()))->set_codec(codec);
   utf8_enc_->setChecked(true);
+}
+
+bool MainWindow::close()
+{
+  qDebug("MainWindow::close()");
+  if (tab_widget_->count()==1)
+    return QWidget::close();
+  else
+    tab_widget_->removeTab(tab_widget_->currentIndex());
+
+  return false;
+}
+
+QTermWidget *MainWindow::create_qterm_widget()
+{
+  QTermWidget *console = new QTermWidget();
+
+  QFont font = QApplication::font();
+  //QFont font = QFont("Monospace", 14);
+  //font.setFamily("Terminus");
+  font.setFamily("Monospace");
+  font.setPointSize(14);
+    
+  console->setTerminalFont(font);
+  console->setScrollBarPosition(QTermWidget::ScrollBarRight);
+
+  QObject::connect(console, SIGNAL(finished()), this, SLOT(close()));
+  return console;
+}
+
+void MainWindow::new_tab()
+{
+  char tab_index[6];
+
+  sprintf(tab_index, "%d", tab_widget_->count()+1);
+  tab_widget_->addTab(create_qterm_widget(), QString(tab_index));
+  utf8_enc();
 }
 
 void MainWindow::set_encode_slot()
