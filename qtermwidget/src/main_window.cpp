@@ -63,14 +63,6 @@ using namespace std;
 
 MainWindow::MainWindow():QMainWindow()
 {
-  tab_widget_ = new QTabWidget;
-
-  setCentralWidget(tab_widget_);
-
-  for (int i=0 ; i < 5 ; ++i)
-  {
-    new_tab();
-  }
 
   QList<QKeySequence> key_shortcuts;
 
@@ -103,6 +95,15 @@ MainWindow::MainWindow():QMainWindow()
 
   big5_enc_->setCheckable(true);
   utf8_enc_->setCheckable(true);
+
+  tab_widget_ = new QTabWidget;
+
+  setCentralWidget(tab_widget_);
+
+  for (int i=0 ; i < 5 ; ++i)
+  {
+    new_tab();
+  }
 }
 
 void MainWindow::copy_slot()
@@ -122,18 +123,18 @@ void MainWindow::big5_enc()
   static QTextCodec *codec=QTextCodec::codecForName("big5");
   qDebug("big5");
   //(dynamic_cast<QTermWidget *>(centralWidget()))->set_codec(codec);
-  if (tab_widget_->count()!=0)
+  if (tab_widget_->currentWidget())
     (dynamic_cast<QTermWidget *> (tab_widget_->currentWidget()))->set_codec(codec);
 
   big5_enc_->setChecked(true);
 }
 void MainWindow::utf8_enc()
 {
+  qDebug("utf8");
   static QTextCodec *codec=QTextCodec::codecForName("utf8");
 
-  qDebug("utf8");
   //(dynamic_cast<QTermWidget *>(centralWidget()))->set_codec(codec);
-  if (tab_widget_->count()!=0)
+  if (tab_widget_->currentWidget())
     (dynamic_cast<QTermWidget *> (tab_widget_->currentWidget()))->set_codec(codec);
   utf8_enc_->setChecked(true);
 }
