@@ -263,7 +263,9 @@ void MainWindow::change_font_slot()
 
   if (ok)
   {
-    (dynamic_cast<QTermWidget *>(centralWidget()))->setTerminalFont(terminal_font);
+    if (tab_widget_->currentWidget())
+      (dynamic_cast<QTermWidget *> (tab_widget_->currentWidget()))->setTerminalFont(terminal_font);
+    (dynamic_cast<QTermWidget *> (tab_widget_->currentWidget()))->get_terminal_display()->updateImage();
     qDebug("ok");
   }
   else
