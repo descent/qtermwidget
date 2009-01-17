@@ -15,7 +15,24 @@ class QTextEdit;
 class QTabWidget;
 class QTermWidget;
 
+#include <QTabWidget>
+
 //QT_END_NAMESPACE
+#endif
+
+#if 0
+class TerminalTabWidget : public QTabWidget
+{
+  Q_OBJECT
+  public:
+
+    TerminalTabWidget(QWidget * parent = 0 ):QTabWidget(parent)
+    {
+    }
+  protected:
+    virtual void keyPressEvent(QKeyEvent* event);
+  
+};
 #endif
 
 //! [0]
@@ -26,12 +43,16 @@ class MainWindow : public QMainWindow
   public:
     MainWindow();
     QTermWidget *create_qterm_widget();
-    void new_tab();
+    void close_tab(int tab_index);
+
+
+
   private:
     QTabWidget *tab_widget_;
 
     QMenu *setting_menu_;
-    QMenu *edit_menu_;
+    QMenu *file_menu_, *edit_menu_;
+    QAction *new_tab_, *close_tab_;
     QAction *copy_, *paste_;
     QAction *change_font_;
     QAction *set_encode_;
@@ -39,7 +60,11 @@ class MainWindow : public QMainWindow
     QMenu *encoding_menu_;
     QActionGroup *input_enc_g_;
     QActionGroup *enc_g_;
+
   public slots:
+    void switch_tab_slot(int tab_index);
+    void new_tab_slot();
+    void close_tab_slot();
     void big5_enc();
     void utf8_enc();
     void copy_slot();

@@ -20,6 +20,9 @@
 #ifndef _Q_TERM_WIDGET
 #define _Q_TERM_WIDGET
 
+#include "TerminalDisplay.h"
+//using namespace Konsole;
+//class TerminalDisplay;
 #include <QtGui>
 
 #include <QLineEdit>
@@ -31,6 +34,7 @@ enum COLOR_SCHEME {     COLOR_SCHEME_WHITE_ON_BLACK	= 1,
 		        COLOR_SCHEME_BLACK_ON_LIGHT_YELLOW };
 
 class QTextCodec;
+//struct TerminalDisplay;
 
 class QTermWidget : public QWidget
 {
@@ -38,6 +42,7 @@ class QTermWidget : public QWidget
   public:
     void copy_to_clipboard();
     void paste_from_clipboard();
+    TerminalDisplay *get_terminal_display(); // descent: This is not a good ideal.
     
     enum ScrollBarPosition
     {
@@ -97,6 +102,8 @@ signals:
         
 protected: 
     virtual void resizeEvent(QResizeEvent *);
+    //virtual void keyPressEvent(QKeyEvent* event);
+
     
 protected slots:
     void sessionFinished();        

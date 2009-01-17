@@ -2282,6 +2282,18 @@ void TerminalDisplay::setFlowControlWarningEnabled( bool enable )
 
 void TerminalDisplay::keyPressEvent( QKeyEvent* event )
 {
+  //if (event->modifiers() & Qt::MetaModifier) 
+  if (event->modifiers() & Qt::AltModifier)
+  {
+    if ((Qt::Key_1 <= event->key()) && (event->key() <= Qt::Key_9) )
+    {
+      //qDebug("event->key(): %d", event->key());
+      emit switch_tab(event->key()-Qt::Key_0-1);
+      return;
+    }
+
+
+  }
 #ifdef DEBUG_KEY
   qDebug("in TerminalDisplay::keyPressEvent");
   qDebug("event->text() legnth: %x", ((event->text()).length() ) );

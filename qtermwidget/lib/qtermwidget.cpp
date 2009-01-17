@@ -18,9 +18,7 @@
 						
 
 #include "qtermwidget.h"
-
 #include "Session.h"
-#include "TerminalDisplay.h"
 
 using namespace Konsole;
 
@@ -108,7 +106,6 @@ QTermWidget::QTermWidget(int startnow, QWidget *parent)
     m_impl->m_terminalDisplay->resize(this->size());
     
     this->setFocusProxy(m_impl->m_terminalDisplay);
-
 #if 0
   _line_edit = new QLineEdit(this);
 #endif
@@ -121,6 +118,13 @@ void QTermWidget::startShellProgram()
 	
     m_impl->m_session->run();
 }
+
+#if 1
+TerminalDisplay *QTermWidget::get_terminal_display()
+{
+  return m_impl->m_terminalDisplay;
+}
+#endif
 
 void QTermWidget::init()
 {    
@@ -233,6 +237,25 @@ void QTermWidget::sessionFinished()
 {
     emit finished();
 }
+
+
+#if 0
+void QTermWidget::keyPressEvent(QKeyEvent* event)
+{
+  //if (event->modifiers() & Qt::MetaModifier) 
+  if (event->modifiers() & Qt::AltModifier)
+  {
+    if (event->key() == Qt::Key_1)
+      qDebug("alt+1");
+
+  }
+  qDebug("QTermWidget::keyPressEvent");
+
+
+  QWidget::keyPressEvent(event);
+}
+#endif
+
 
 	
 //#include "moc_consoleq.cpp"

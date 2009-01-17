@@ -458,7 +458,9 @@ public slots:
      */
     void bell(const QString& message);
 
-signals:
+  signals:
+    void switch_tab(int tab_index);
+
 
     /**
      * Emitted when the user presses a key whilst the terminal widget has focus.

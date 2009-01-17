@@ -66,6 +66,13 @@ MainWindow::MainWindow():QMainWindow()
 
   QList<QKeySequence> key_shortcuts;
 
+  file_menu_ = menuBar()->addMenu(tr("&File"));
+  ADD_ACTION(file_menu_, new_tab_, "&new tab", new_tab_slot )
+  SET_KEY_SHORTCUT("F2", new_tab_);
+
+  ADD_ACTION(file_menu_, close_tab_, "&close tab", close_tab_slot )
+  SET_KEY_SHORTCUT("F3", close_tab_);
+
   edit_menu_ = menuBar()->addMenu(tr("&Edit"));
 
   ADD_ACTION(edit_menu_, copy_, "&copy", copy_slot)
@@ -100,11 +107,20 @@ MainWindow::MainWindow():QMainWindow()
 
   setCentralWidget(tab_widget_);
 
-  for (int i=0 ; i < 5 ; ++i)
+  for (int i=0 ; i < 6 ; ++i)
   {
-    new_tab();
+    new_tab_slot();
   }
+  //tab_widget_->setFocus();
 }
+
+void MainWindow::switch_tab_slot(int tab_index)
+{
+  if (tab_index < tab_widget_->count())
+    tab_widget_->setCurrentIndex(tab_index);
+}
+
+
 
 void MainWindow::copy_slot()
 {
@@ -162,12 +178,37 @@ QTermWidget *MainWindow::create_qterm_widget()
     
   console->setTerminalFont(font);
   console->setScrollBarPosition(QTermWidget::ScrollBarRight);
+  //console->setFocus();
+  //QApplication::setActiveWindow(console);
 
   QObject::connect(console, SIGNAL(finished()), this, SLOT(close()));
+  QObject::connect(console->get_terminal_display(), SIGNAL(switch_tab(int)), this, SLOT(switch_tab_slot(int)));
+  //console->get_terminal_display()->setFocus();
   return console;
 }
 
-void MainWindow::new_tab()
+void MainWindow::close_tab(int tab_index)
+{
+  char tab_index_str[6];
+
+  qDebug("tab_index: %d", tab_index);
+  tab_widget_->removeTab(tab_index);
+
+  for (int i=tab_index ; i < tab_widget_->count() ; ++i)
+  {
+    sprintf(tab_index_str, "%d", i+1);
+    tab_widget_->setTabText(i, QString(tab_index_str));
+  }
+
+}
+
+void MainWindow::close_tab_slot()
+{
+  if (tab_widget_->count() != 1)
+    close_tab(tab_widget_->currentIndex());
+}
+
+void MainWindow::new_tab_slot()
 {
   char tab_index[6];
 
@@ -175,6 +216,23 @@ void MainWindow::new_tab()
   tab_widget_->addTab(create_qterm_widget(), QString(tab_index));
   utf8_enc();
 }
+
+#if 0
+void TerminalTabWidget::keyPressEvent(QKeyEvent* event)
+{
+  //if (event->modifiers() & Qt::MetaModifier) 
+  if (event->modifiers() & Qt::AltModifier) 
+  {
+    if (event->key() == Qt::Key_1)
+      qDebug("win+1");
+
+  }
+  qDebug("MainWindow::keyPressEvent");
+  
+
+  QTabWidget::keyPressEvent(event);
+}
+#endif
 
 void MainWindow::set_encode_slot()
 {
