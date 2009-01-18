@@ -137,6 +137,13 @@ void MainWindow::paste_slot()
 void MainWindow::big5_enc()
 {
   static QTextCodec *codec=QTextCodec::codecForName("big5");
+
+  if (codec==0)
+  {
+    qWarning() << "can not get big5 codec" << endl;
+    return;
+  }
+
   qDebug("big5");
   //(dynamic_cast<QTermWidget *>(centralWidget()))->set_codec(codec);
   if (tab_widget_->currentWidget())
@@ -148,6 +155,12 @@ void MainWindow::utf8_enc()
 {
   qDebug("utf8");
   static QTextCodec *codec=QTextCodec::codecForName("utf8");
+
+  if (codec==0)
+  {
+    qWarning() << "can not get utf8 codec" << endl;
+    return;
+  }
 
   //(dynamic_cast<QTermWidget *>(centralWidget()))->set_codec(codec);
   if (tab_widget_->currentWidget())
