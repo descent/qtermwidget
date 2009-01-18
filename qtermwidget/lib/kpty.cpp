@@ -127,6 +127,9 @@ extern "C" {
 # endif
 #endif
 
+//#define _tcsetattr(fd, ttmode) tcsetattr(fd, TCSANOW, ttmode)
+//#define _tcgetattr(fd, ttmode) tcgetattr(fd, ttmode)
+
 //#include <kdebug.h>
 //#include <kstandarddirs.h>	// findExe
 
@@ -261,8 +264,28 @@ bool KPty::open()
   {
     for (const char* s4 = "0123456789abcdef"; *s4; s4++)
     {
+      //ptyName = QString().sprintf("/dev/pty%c%c", *s3, *s4).toAscii();
+      //d->ttyName = QString().sprintf("/dev/tty%c%c", *s3, *s4).toAscii();
+      //d->ttyName = QString().sprintf("/dev/t,ty%c", *s4).toAscii();
+      //d->ttyName = QString().sprintf("/dev/tty").toAscii();
+
+#ifdef __CYGWIN__
+      ptyName = QString().sprintf("/dev/ptmx").toAscii();
+      int pty=0;
+      int r=((pty=::open(ptyName.data(), O_RDWR)) < 0);
+      if (!r)
+      {
+        char ttydev[20]="/dev/tty";
+        strcpy(ttydev, ptsname(pty));
+        d->ttyName = QString().sprintf("%s", ttydev).toAscii();
+	::close(pty);
+      }
+#else
       ptyName = QString().sprintf("/dev/pty%c%c", *s3, *s4).toAscii();
       d->ttyName = QString().sprintf("/dev/tty%c%c", *s3, *s4).toAscii();
+
+#endif
+
 
       d->masterFd = ::open(ptyName.data(), O_RDWR);
       if (d->masterFd >= 0)
@@ -303,6 +326,10 @@ bool KPty::open()
   return false;
 
  gotpty:
+
+  qWarning() << "ptyName: " << ptyName << endl;
+  qWarning() << "d->ttyName: " << d->ttyName << endl;
+
   struct stat st;
   if (stat(d->ttyName.data(), &st)) {
     return false; // this just cannot happen ... *cough*  Yeah right, I just
@@ -572,7 +599,6 @@ void KPty::logout()
 bool KPty::tcGetAttr(struct ::termios *ttmode) const
 {
     Q_D(const KPty);
-
     return _tcgetattr(d->masterFd, ttmode) == 0;
 }
 
