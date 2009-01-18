@@ -56,7 +56,7 @@ Session *TermWidgetImpl::createSession()
     session->setAutoClose(true);
 		    
     //session->setCodec(QTextCodec::codecForName("UTF-8"));
-    session->setCodec(QTextCodec::codecForName("big5"));
+    //session->setCodec(QTextCodec::codecForName("big5"));
 			
     session->setFlowControlEnabled(true);
     session->setHistoryType(HistoryTypeBuffer(1000));
