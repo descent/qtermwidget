@@ -299,7 +299,7 @@ void Session::run()
   int result = _shellProcess->start(QFile::encodeName(_program),
                                   arguments,
                                   _environment << backgroundColorHint,
-                                  windowId(),
+                                  (ulong)windowId(),
                                   _addToUtmp);
 
   if (result < 0)
