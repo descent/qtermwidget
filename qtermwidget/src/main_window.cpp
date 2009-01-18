@@ -125,13 +125,17 @@ void MainWindow::switch_tab_slot(int tab_index)
 void MainWindow::copy_slot()
 {
   qDebug("copy_slot");
-  (dynamic_cast<QTermWidget *>(centralWidget()))->copy_to_clipboard();
+  //(dynamic_cast<QTermWidget *>(centralWidget()))->copy_to_clipboard();
+  if (tab_widget_->currentWidget())
+    (dynamic_cast<QTermWidget *> (tab_widget_->currentWidget()))->copy_to_clipboard();
 }
 
 void MainWindow::paste_slot()
 {
   qDebug("paste_slot");
-  (dynamic_cast<QTermWidget *>(centralWidget()))->paste_from_clipboard();
+  //(dynamic_cast<QTermWidget *>(centralWidget()))->paste_from_clipboard();
+  if (tab_widget_->currentWidget())
+    (dynamic_cast<QTermWidget *> (tab_widget_->currentWidget()))->paste_from_clipboard();
 }
 
 void MainWindow::big5_enc()
