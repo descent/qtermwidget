@@ -116,6 +116,7 @@ MainWindow::MainWindow():QMainWindow()
 
 void MainWindow::switch_tab_slot(int tab_index)
 {
+  //qDebug("tab_index: %d", tab_index);
   if (tab_index < tab_widget_->count())
     tab_widget_->setCurrentIndex(tab_index);
 }
@@ -177,8 +178,18 @@ bool MainWindow::close()
   qDebug("MainWindow::close()");
   if (tab_widget_->count()==1)
     return QWidget::close();
-  else
+  else 
+  {
     tab_widget_->removeTab(tab_widget_->currentIndex());
+    for (int i=0 ; i < tab_widget_->count() ; ++i)
+    {
+      char num_str[5];
+
+      sprintf(num_str, "%d", i+1);
+      tab_widget_->setTabText(i, num_str);
+    }
+  }
+
 
   return false;
 }
@@ -190,8 +201,10 @@ QTermWidget *MainWindow::create_qterm_widget()
   QFont font = QApplication::font();
   //QFont font = QFont("Monospace", 14);
   //font.setFamily("Terminus");
-  font.setFamily("Monospace");
-  font.setPointSize(14);
+  //font.setFamily("Monospace");
+  //font.setPointSize(14);
+  //font.setFamily("efont");
+  //font.setPointSize(11);
     
   console->setTerminalFont(font);
   console->setScrollBarPosition(QTermWidget::ScrollBarRight);
