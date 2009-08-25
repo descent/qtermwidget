@@ -206,6 +206,7 @@ QTermWidget *MainWindow::create_qterm_widget()
   //font.setFamily("efont");
   //font.setPointSize(11);
     
+  //QFont font = QFont("Osaka-等幅", 18);
   console->setTerminalFont(font);
   console->setScrollBarPosition(QTermWidget::ScrollBarRight);
   //console->setFocus();
@@ -293,10 +294,21 @@ void MainWindow::change_font_slot()
 
   if (ok)
   {
-    if (tab_widget_->currentWidget())
-      (dynamic_cast<QTermWidget *> (tab_widget_->currentWidget()))->setTerminalFont(terminal_font);
+    for (int i=0 ; i < tab_widget_->count() ; ++i)
+      (dynamic_cast<QTermWidget *> (tab_widget_->widget(i)))->setTerminalFont(terminal_font);
+    //if (tab_widget_->currentWidget())
+      //(dynamic_cast<QTermWidget *> (tab_widget_->currentWidget()))->setTerminalFont(terminal_font);
     (dynamic_cast<QTermWidget *> (tab_widget_->currentWidget()))->get_terminal_display()->updateImage();
     qDebug("ok");
+#if 0
+    QMessageBox msg_box;
+    msg_box.setText(terminal_font.family());
+    msg_box.exec();
+#endif
+
+
+    
+    //qDebug("font family: %s\n", terminal_font.family().toStdString().c_str());
   }
   else
   {
