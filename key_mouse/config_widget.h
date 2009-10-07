@@ -24,7 +24,7 @@ class ConfWidget : public QWidget
   private:
     QPushButton *button_;
     QTimer *timer_;
-    QCursor *QCursor_;
+    QCursor *m_cursor_;
     int x_diff_, y_diff_;
 };
 

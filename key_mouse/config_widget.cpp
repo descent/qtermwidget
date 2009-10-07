@@ -1,5 +1,7 @@
 #include "config_widget.h"
 
+#include <QtGlobal>
+
 ConfWidget::ConfWidget(QWidget * parent, Qt::WindowFlags f):QWidget(parent,f)
 {
   button_ = new QPushButton(this);
@@ -9,11 +11,13 @@ ConfWidget::ConfWidget(QWidget * parent, Qt::WindowFlags f):QWidget(parent,f)
   timer_ = new QTimer(this);
 
   connect(timer_, SIGNAL(timeout()), this, SLOT(move_cursor()));
-  timer_->start(1000);
 
-  QCursor_ = new QCursor();
+  m_cursor_ = new QCursor();
   x_diff_ = 50;
   y_diff_ = 0;
+  qDebug("qVersion(): %s", qVersion());
+  qDebug("QT_VERSION: %x", QT_VERSION);
+
 }
 
 void ConfWidget::mousePressEvent ( QMouseEvent * event )
@@ -27,8 +31,24 @@ void ConfWidget::move_cursor()
   static int x=0,y=10;
 
   x+=x_diff_;
-  QCursor_->setPos(x,y);
   qDebug("move cursor");
+  QPoint p(x,y);
+  m_cursor_->setPos(p);
+  // (Type type, const QPoint & position, Qt::MouseButton button, Qt::MouseButtons buttons, Qt::KeyboardModifiers modifiers )
+  //QMouseEvent *me = new QMouseEvent(QEvent::MouseMove, p, Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+  QMouseEvent *me = new QMouseEvent(QEvent::MouseButtonPress, p, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
+  //QApplication::desktop()
+  //QCoreApplication::postEvent(QApplication::desktop(), me, Qt::HighEventPriority);
+  //if (QCoreApplication::notify(QApplication::desktop(), me))
+  if (QCoreApplication::sendEvent(QApplication::desktop(), me))
+  {
+    qDebug("t");
+  }
+  else
+  {
+    qDebug("f");
+  }
+
 }
 
 void ConfWidget::mouseMoveEvent ( QMouseEvent * event )
@@ -66,7 +86,14 @@ void ConfWidget::keyReleaseEvent ( QKeyEvent * event )
     case (Qt::Key_Home):
     {
       qDebug("home key => grab mouse");
+      timer_->start(1000);
       grabMouse();
+      break;
+    }
+    case (Qt::Key_End):
+    {
+      qDebug("end key => release mouse");
+      releaseMouse();
       timer_->stop();
       break;
     }
