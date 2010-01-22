@@ -665,7 +665,9 @@ void TerminalDisplay::drawTextFragment(QPainter& painter ,
 
     // setup painter 
     const QColor foregroundColor = style->foregroundColor.color(_colorTable);
-    const QColor backgroundColor = style->backgroundColor.color(_colorTable);
+    //const QColor backgroundColor = style->backgroundColor.color(_colorTable);
+    //const QColor backgroundColor = QColor(127,255,5);
+    const QColor backgroundColor = background_color_;
     
     // draw background if different from the display's background color
     if ( backgroundColor != palette().background().color() )
@@ -1075,7 +1077,9 @@ void TerminalDisplay::paintEvent( QPaintEvent* pe )
 
   foreach (QRect rect, (pe->region() & contentsRect()).rects())
   {
-    drawBackground(paint,rect,palette().background().color(),	true /* use opacity setting */);
+    //drawBackground(paint,rect,palette().background().color(),	true /* use opacity setting */);
+    //drawBackground(paint,rect,QColor(255,0,255),	true /* use opacity setting */);
+    drawBackground(paint,rect, background_color_,	true /* use opacity setting */);
     drawContents(paint, rect);    
   }
 //    drawBackground(paint,contentsRect(),palette().background().color(),	true /* use opacity setting */);

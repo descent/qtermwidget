@@ -55,6 +55,7 @@ class MainWindow : public QMainWindow
     QAction *new_tab_, *close_tab_;
     QAction *copy_, *paste_;
     QAction *change_font_;
+    QAction *change_bg_color_;
     QAction *set_encode_;
     QAction *big5_enc_, *utf8_enc_;
     QMenu *encoding_menu_;
@@ -72,6 +73,7 @@ class MainWindow : public QMainWindow
     bool close();
   private slots:
     void change_font_slot();
+    void change_bg_color_slot();
     void set_encode_slot();
 #if 0
     //virtual ~MainWindow();

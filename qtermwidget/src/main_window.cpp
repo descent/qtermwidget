@@ -83,8 +83,10 @@ MainWindow::MainWindow():QMainWindow()
 
   setting_menu_ = menuBar()->addMenu(tr("&Setting"));
 
+  ADD_ACTION(setting_menu_, change_bg_color_, "&BackgroundColor", change_bg_color_slot);
   ADD_ACTION(setting_menu_, change_font_, "&Font", change_font_slot);
 
+  SET_KEY_SHORTCUT("Ctrl+B", change_bg_color_);
   SET_KEY_SHORTCUT("Ctrl+F", change_font_);
 
   encoding_menu_ = menuBar()->addMenu(tr("E&ncoding") );
@@ -208,6 +210,7 @@ QTermWidget *MainWindow::create_qterm_widget()
     
   //QFont font = QFont("Osaka-等幅", 18);
   console->setTerminalFont(font);
+  console->get_terminal_display()->set_background_color(QColor(57,57,57));
   console->setScrollBarPosition(QTermWidget::ScrollBarRight);
   //console->setFocus();
   //QApplication::setActiveWindow(console);
@@ -284,22 +287,50 @@ void MainWindow::set_encode_slot()
 #endif
 }
 
+void MainWindow::change_bg_color_slot()
+{
+  QColor color = QColorDialog::getColor(Qt::black, this);
+  if (color.isValid())
+  {
+  #ifdef CHANGE_CURRENT_QTERMWIDGET
+    (dynamic_cast<QTermWidget *> (tab_widget_->currentWidget()))->get_terminal_display()->set_background_color(color);
+  #else
+    for (int i=0 ; i < tab_widget_->count() ; ++i) {
+      (dynamic_cast<QTermWidget *> (tab_widget_->widget(i)))->get_terminal_display()->set_background_color(color);
+      (dynamic_cast<QTermWidget *> (tab_widget_->widget(i)))->get_terminal_display()->updateImage();
+    }
+  #endif
+  }
+}
+
 void MainWindow::change_font_slot()
 {
   bool ok;
 
   qDebug("change_font_slot");
+  #if 0
+  QColor color = QColorDialog::getColor(Qt::black, this);
+  if (color.isValid())
+  {
+    (dynamic_cast<QTermWidget *> (tab_widget_->currentWidget()))->get_terminal_display()->set_background_color(color);
+  }
+  #endif
 
+
+#if 1
   QFont terminal_font = QFontDialog::getFont(&ok, this);
 
   if (ok)
   {
-    for (int i=0 ; i < tab_widget_->count() ; ++i)
+    for (int i=0 ; i < tab_widget_->count() ; ++i) 
+    {
       (dynamic_cast<QTermWidget *> (tab_widget_->widget(i)))->setTerminalFont(terminal_font);
+      (dynamic_cast<QTermWidget *> (tab_widget_->widget(i)))->get_terminal_display()->updateImage();
+    }
     //if (tab_widget_->currentWidget())
       //(dynamic_cast<QTermWidget *> (tab_widget_->currentWidget()))->setTerminalFont(terminal_font);
-    (dynamic_cast<QTermWidget *> (tab_widget_->currentWidget()))->get_terminal_display()->updateImage();
-    qDebug("ok");
+    //(dynamic_cast<QTermWidget *> (tab_widget_->currentWidget()))->get_terminal_display()->updateImage();
+    //qDebug("ok");
 #if 0
     QMessageBox msg_box;
     msg_box.setText(terminal_font.family());
@@ -314,6 +345,7 @@ void MainWindow::change_font_slot()
   {
     qDebug("not ok");
   }
+#endif
 
 }
 

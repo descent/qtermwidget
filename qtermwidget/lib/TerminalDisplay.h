@@ -74,6 +74,14 @@ public:
     TerminalDisplay(QWidget *parent=0);
     virtual ~TerminalDisplay();
 
+    void set_background_color(QColor color)
+    {
+      background_color_=color;
+    }
+    void get_background_color(QColor &color)
+    {
+      color=background_color_;
+    }
     /** Returns the terminal color palette used by the display. */
     const ColorEntry* colorTable() const;
     /** Sets the terminal color palette used by the display. */
@@ -586,6 +594,7 @@ private:
     // draws the preedit string for input methods
     void drawInputMethodPreeditString(QPainter& painter , const QRect& rect);
 
+
     // --
 
     // maps an area in the character image to an area on the widget 
@@ -713,6 +722,7 @@ private:
     uint _lineSpacing;
 
     bool _colorsInverted; // true during visual bell
+    QColor background_color_;
 
     QSize _size;
 	
