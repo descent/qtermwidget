@@ -38,9 +38,13 @@
 //! [0]
 #include <QtGui>
 #include <QActionGroup>
+#include <QMessageBox>
+#include <QtGlobal> // for qVersion()
 
 #include "main_window.h"
 #include "qtermwidget.h"
+
+
 
 #include <cstdio>
 
@@ -55,47 +59,57 @@ using namespace std;
 
 #define SET_KEY_SHORTCUT(keybind, qa_obj) \
 { \
-  key_shortcuts.clear(); \
-  key_shortcuts << tr(keybind); \
-  qa_obj->setShortcuts(key_shortcuts); \
+  qa_obj->setShortcut(QKeySequence(keybind)); \
 }
 
 
 MainWindow::MainWindow():QMainWindow()
 {
 
-  QList<QKeySequence> key_shortcuts;
+  //QList<QKeySequence> key_shortcuts;
 
   file_menu_ = menuBar()->addMenu(tr("&File"));
   ADD_ACTION(file_menu_, new_tab_, "&new tab", new_tab_slot )
-  SET_KEY_SHORTCUT("F2", new_tab_);
+  SET_KEY_SHORTCUT(tr("F2"), new_tab_);
 
   ADD_ACTION(file_menu_, close_tab_, "&close tab", close_tab_slot )
-  SET_KEY_SHORTCUT("F3", close_tab_);
+  SET_KEY_SHORTCUT(tr("F3"), close_tab_);
 
   edit_menu_ = menuBar()->addMenu(tr("&Edit"));
 
   ADD_ACTION(edit_menu_, copy_, "&copy", copy_slot)
   ADD_ACTION(edit_menu_, paste_, "&paste", paste_slot)
 
-  SET_KEY_SHORTCUT("Ctrl+Shift+C", copy_);
-  SET_KEY_SHORTCUT("Ctrl+Shift+V", paste_);
-
+  //Qt::Key_Control	0x01000021	On Mac OS X, this corresponds to the Command keys.
+  //Qt::Key_Meta	0x01000022	On Mac OS X, this corresponds to the Control keys. On Windows keyboards, this key is mapped to the Windows key.
+  
+#if defined(Q_OS_MAC)
+  SET_KEY_SHORTCUT(Qt::CTRL + Qt::Key_C, copy_);
+  SET_KEY_SHORTCUT(Qt::CTRL + Qt::Key_V, paste_);
+#else // win, linux/x use windows key
+  SET_KEY_SHORTCUT(Qt::META + Qt::Key_C, copy_);
+  SET_KEY_SHORTCUT(Qt::META+ Qt::Key_V, paste_);
+  //SET_KEY_SHORTCUT("Ctrl+Shift+C", copy_);
+  //SET_KEY_SHORTCUT("Ctrl+Shift+V", paste_);
+#endif
   setting_menu_ = menuBar()->addMenu(tr("&Setting"));
 
   ADD_ACTION(setting_menu_, change_bg_color_, "&BackgroundColor", change_bg_color_slot);
   ADD_ACTION(setting_menu_, change_font_, "&Font", change_font_slot);
 
-  SET_KEY_SHORTCUT("Ctrl+B", change_bg_color_);
-  SET_KEY_SHORTCUT("Ctrl+F", change_font_);
+  SET_KEY_SHORTCUT(tr("Ctrl+B"), change_bg_color_);
+  SET_KEY_SHORTCUT(tr("Ctrl+F"), change_font_);
 
   encoding_menu_ = menuBar()->addMenu(tr("E&ncoding") );
 
   ADD_ACTION(encoding_menu_, big5_enc_, "BIG5", big5_enc)
   ADD_ACTION(encoding_menu_, utf8_enc_, "UTF8", utf8_enc)
 
-  SET_KEY_SHORTCUT("Ctrl+5", big5_enc_);
-  SET_KEY_SHORTCUT("Ctrl+8", utf8_enc_);
+  help_menu_ = menuBar()->addMenu(tr("&Help"));
+  ADD_ACTION(help_menu_, about_, "&About", about_slot)
+
+  SET_KEY_SHORTCUT(tr("Ctrl+5"), big5_enc_);
+  SET_KEY_SHORTCUT(tr("Ctrl+8"), utf8_enc_);
 
   input_enc_g_ = new QActionGroup(this);
   enc_g_ = new QActionGroup(this);
@@ -200,11 +214,26 @@ QTermWidget *MainWindow::create_qterm_widget()
 {
   QTermWidget *console = new QTermWidget();
 
-  QFont font = QApplication::font();
+  //QFont font = QApplication::font();
+  QFont font;
   //QFont font = QFont("Monospace", 14);
   //font.setFamily("Terminus");
-  //font.setFamily("Monospace");
-  //font.setPointSize(14);
+#ifdef Q_OS_WIN32
+  font.setFamily("Monospace");
+  font.setPointSize(14);
+  QSysInfo::windowsVersion ()  ;
+  QApplication::winVersion () ; // old version
+#elif defined(Q_OS_LINUX)
+  font.setFamily("Monospace");
+  font.setPointSize(14);
+#elif defined(Q_OS_MAC)
+  font.setFamily("Andale Mono");
+  font.setPointSize(18);
+  //QApplication::macVersion () ; // old verison
+  //QSysInfo::macVersion ()  ;
+  QSysInfo::MacintoshVersion;
+  
+#endif
   //font.setFamily("efont");
   //font.setPointSize(11);
     
@@ -303,6 +332,74 @@ void MainWindow::change_bg_color_slot()
   }
 }
 
+#if defined(Q_OS_MAC)
+const char *mac_version_str()
+{
+  switch (QSysInfo::MacintoshVersion)
+  {
+    case QSysInfo::MV_10_4 :
+    {
+      return "10.4";
+    }
+    case QSysInfo::MV_10_5 :
+    {
+      return "10.5";
+    }
+    case QSysInfo::MV_10_6 :
+    {
+      return "10.6";
+    }
+    default:
+    {
+      return "unknow";
+    }
+  }
+}
+#endif
+
+const char *win_version_str()
+{
+#if 0
+  switch ( QSysInfo::windowsVersion() )
+  {
+    case QSysInfo::WV_5_0:
+    {
+      return "windows 2000";
+    }
+    case QSysInfo::WV_5_1:
+    {
+      return "windows xp";
+    }
+    default:
+    {
+      return "unknow";
+    }
+  }
+  #endif
+}
+
+void MainWindow::about_slot()
+{
+  QMessageBox msg_box;
+  QString msg;
+#ifdef Q_OS_WIN32
+  QSysInfo::windowsVersion ()  ;
+  msg.sprintf("mac osX %s\nQT version: %s", win_version_str(), qVersion());
+  //QApplication::winVersion () ; // old version
+#elif defined(Q_OS_LINUX)
+  msg.sprintf("Linux/X\nQT version: %s", qVersion());
+#elif defined(Q_OS_MAC)
+  QSysInfo::MacintoshVersion;
+  //msg+="\nmac osX"  ;
+  msg.sprintf("mac osX %s\nQT version: %s", mac_version_str(), qVersion());
+#endif
+  //msg+=" version";
+
+  msg_box.setText(msg);
+  msg_box.exec();
+  //qDebug("about");  	
+}
+
 void MainWindow::change_font_slot()
 {
   bool ok;
@@ -318,10 +415,20 @@ void MainWindow::change_font_slot()
 
 
 #if 1
-  QFont terminal_font = QFontDialog::getFont(&ok, this);
+  static QFont terminal_font;
+  terminal_font = QFontDialog::getFont(&ok, terminal_font ,this);
+  //QFont terminal_font = QFontDialog::getFont(&ok, QFont("Monospace", 14) ,this);
 
   if (ok)
   {
+    //terminal_font.setStyle(QFont::StyleNormal);
+    //terminal_font.setFamily("Monospace");
+    qDebug() << "family: " << terminal_font.family() ;
+    if (terminal_font.pixelSize()==-1)
+      qDebug() << " point size: " << terminal_font.pointSize() << endl;
+    else
+      qDebug() << " pixel size: " << terminal_font.pixelSize() << endl;
+
     for (int i=0 ; i < tab_widget_->count() ; ++i) 
     {
       (dynamic_cast<QTermWidget *> (tab_widget_->widget(i)))->setTerminalFont(terminal_font);

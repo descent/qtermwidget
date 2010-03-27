@@ -51,13 +51,14 @@ class MainWindow : public QMainWindow
     QTabWidget *tab_widget_;
 
     QMenu *setting_menu_;
-    QMenu *file_menu_, *edit_menu_;
+    QMenu *file_menu_, *edit_menu_, *help_menu_;
     QAction *new_tab_, *close_tab_;
     QAction *copy_, *paste_;
     QAction *change_font_;
     QAction *change_bg_color_;
     QAction *set_encode_;
     QAction *big5_enc_, *utf8_enc_;
+    QAction *about_;
     QMenu *encoding_menu_;
     QActionGroup *input_enc_g_;
     QActionGroup *enc_g_;
@@ -70,6 +71,7 @@ class MainWindow : public QMainWindow
     void utf8_enc();
     void copy_slot();
     void paste_slot();
+    void about_slot();
     bool close();
   private slots:
     void change_font_slot();

@@ -945,6 +945,42 @@ void Vt102Emulation::sendText( const QString& text )
 
 }
 
+#if 0
+Constant	Value	Description
+Qt::NoModifier	0x00000000	No modifier key is pressed.
+Qt::ShiftModifier	0x02000000	A Shift key on the keyboard is pressed.
+Qt::ControlModifier	0x04000000	A Ctrl key on the keyboard is pressed.
+Qt::AltModifier	0x08000000	An Alt key on the keyboard is pressed.
+Qt::MetaModifier	0x10000000	A Meta key on the keyboard is pressed.
+Qt::KeypadModifier	0x20000000	A keypad button is pressed.
+Qt::GroupSwitchModifier	0x40000000	X11 only. A Mode_switch key on the keyboard is pressed.
+Note: On Mac OS X, the ControlModifier value corresponds to the Command keys on the Macintosh keyboard, and the MetaModifier value corresponds to the Control keys. The KeypadModifier value will also be set when an arrow key is pressed as the arrow keys are considered part of the keypad.
+
+Note: On Windows Keyboards, Qt::MetaModifier and Qt::Key_Meta are mapped to the Windows key.
+
+The KeyboardModifiers type is a typedef for QFlags<KeyboardModifier>. It stores an OR combination of KeyboardModifier values.
+#endif
+
+//#define DEBUG_KEY
+
+const char *modifiers_str(Qt::KeyboardModifiers modifiers)
+{
+  switch (modifiers)
+  {
+    case Qt::ControlModifier:
+    {
+      return "Qt::ControlModifier";
+      break;	     
+    }
+    case Qt::MetaModifier:
+    {
+      return "Qt::MetaModifier";
+      break;	     
+    }
+  }
+
+}
+
 void Vt102Emulation::sendKeyEvent( QKeyEvent* event )
 {
     Qt::KeyboardModifiers modifiers = event->modifiers();
@@ -960,6 +996,13 @@ void Vt102Emulation::sendKeyEvent( QKeyEvent* event )
     if ( _keyTranslator )
     {
       //qDebug("_keyTranslator");
+#ifdef DEBUG_KEY
+      qDebug() << "event->key(): " << event->key() << endl;
+      qDebug() << "event->modifiers(): " << event->modifiers() << endl;
+      qDebug() << "str event->modifiers(): " << modifiers_str(event->modifiers()) << endl;
+      qDebug() << "states: " << states << endl;
+	    
+#endif
     KeyboardTranslator::Entry entry = _keyTranslator->findEntry( 
                                                 event->key() , 
                                                 modifiers,
@@ -992,11 +1035,25 @@ void Vt102Emulation::sendKeyEvent( QKeyEvent* event )
             textToSend += _codec->fromUnicode(entry.text(true,modifiers));
         }
         else
+	{
             textToSend += _codec->fromUnicode(event->text());
+	}
 
 #if 1
+#ifdef DEBUG_KEY
+	for (int i=0 ; i < textToSend.length() ; ++i)
+          qDebug("%x ", textToSend.constData()[i]);
+#endif
+   #if defined(Q_OS_MAC)
+   // ctrl+c
+   if (modifiers == Qt::MetaModifier && event->key()==67) {
+        char c=3;
+        textToSend = &c;
+    }	
+    #endif
     switch (event->key())
     {
+
       case Qt::Key_Left:
       {
         char k_text[]={0x1b, 0x5b, 0x44};
@@ -1014,7 +1071,7 @@ void Vt102Emulation::sendKeyEvent( QKeyEvent* event )
       case Qt::Key_Up:
       {
         char k_text[]={0x1b, 0x5b, 0x41};
-
+        //qDebug() << "key up" << endl;
         sendData(k_text, sizeof(k_text)/sizeof(char) );
         break;
       }
