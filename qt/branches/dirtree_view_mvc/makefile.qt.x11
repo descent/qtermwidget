@@ -1,0 +1,54 @@
+# make ARCH=arm-linux-
+ARCH=
+CXX=$(ARCH)g++
+MOC=/ezplay/qt-x11-free-3.3.3/bin/moc
+OBJS=dirtree_view.o \
+     moc_dirtree_view.o \
+     font_selector.o \
+     moc_font_selector.o \
+     rename_line_edit.o \
+     moc_rename_line_edit.o \
+     convertencode.o
+
+#STRIP=$(ARCH)strip
+STRIP=
+
+CXXFLAGS=-g -Wall -I/ezplay/qt-x11-free-3.3.3/include/
+#CXXFLAGS=-I$(QTDIR)/include -I$(QPEDIR)/include -DQWS -g -Wall
+LDFLAGS=-L/ezplay/qt-x11-free-3.3.3/lib -Wl,-rpath,/ezplay/qt-x11-free-3.3.3/lib -L/ezplay/qt-x11-free-3.3.3/lib -L/usr/X11R6/lib
+
+dirtree_view: $(OBJS)
+	$(CXX) $(LDFLAGS) -o $@ $^ -lqt -lXrender -lXrandr -lXcursor -lXinerama -lXft -lfreetype -lfontconfig -lXext -lX11 -lm -lSM -lICE -ldl; $(STRIP) $@
+
+
+dirtree_view.o:dirtree_view.cpp dirtree_view.h big5str_to_qstr.h font_selector.h rename_line_edit.h
+	$(CXX) $(CXXFLAGS) -c $<
+
+moc_dirtree_view.cpp:dirtree_view.h
+	$(MOC) -o $@ $<
+moc_dirtree_view.o:moc_dirtree_view.cpp
+	$(CXX) $(CXXFLAGS) -c $<
+
+font_selector.o:font_selector.cpp font_selector.h
+	$(CXX) $(CXXFLAGS) -c $<
+
+moc_font_selector.cpp:font_selector.h
+	$(MOC) -o $@ $<
+
+moc_font_selector.o: moc_font_selector.cpp
+	$(CXX) $(CXXFLAGS) -c $<
+
+moc_rename_line_edit.cpp:rename_line_edit.h
+	$(MOC) -o $@ $<
+
+moc_rename_line_edit.o:moc_rename_line_edit.cpp
+	$(CXX) $(CXXFLAGS) -c $<
+
+rename_line_edit.o:rename_line_edit.cpp rename_line_edit.h
+	$(CXX) $(CXXFLAGS) -c $<
+
+convertencode.o:convertencode.cpp convertencode.h
+	$(CXX) $(CXXFLAGS) -c $<
+
+clean:
+	rm -rf *.o

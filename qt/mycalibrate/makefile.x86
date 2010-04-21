@@ -1,0 +1,21 @@
+CXX=g++
+QTEDIR=/arm-develop/x86/qt-embedded-free-3.0.3
+QTEINC=-I${QTEDIR}/include
+QTELIB=-lqte
+QTELIBPATH=-L${QTEDIR}/lib
+EMBEDDEDFLAG=-fno-rtti -DQWS
+MOC=${QTEDIR}/bin/moc
+OBJS=moc_calibrate.o calibrate.o main_calibrate.o 
+
+main_calibrate.x86:${OBJS}
+	${CXX} ${QTEINC} ${QTELIBPATH} ${EMBEDDEDFLAG} -o $@ ${OBJS} ${QTELIB}
+main_calibrate.o:main_calibrate.cpp
+	${CXX} ${QTEINC} ${EMBEDDEDFLAG} -c $*.cpp
+moc_calibrate.cpp:calibrate.h
+	${MOC} -o $@ calibrate.h
+moc_calibrate.o:moc_calibrate.cpp
+	${CXX} ${QTEINC} ${EMBEDDEDFLAG} -c $*.cpp
+calibrate.o:calibrate.cpp
+	${CXX} ${QTEINC} ${EMBEDDEDFLAG} -c $*.cpp
+clean:
+	rm -rf *.o

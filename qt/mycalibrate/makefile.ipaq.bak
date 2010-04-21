@@ -1,0 +1,40 @@
+CXX=/skiff/local/bin/arm-linux-g++
+QTEDIR=/srcfiles/ui_env/ipaq/qt-embedded-free-3.0.0
+QTEINC=-I${QTEDIR}/include
+QTELIB=-lqte
+QTELIBPATH=-L${QTEDIR}/lib
+EMBEDDEDFLAG=-fno-rtti -DQWS -O2
+MOC=${QTEDIR}/bin/moc
+STRIP=/skiff/local/arm-linux/bin/strip
+OBJS=moc_calibrate.o calibrate.o main_calibrate.o 
+SHOW_OBJ=moc_mylabel.o mylabel.o show_xy.o
+
+
+show_xy:${SHOW_OBJ}
+	${CXX} ${EMBEDDEDFLAG} -o $@ ${SHOW_OBJ} && ${STRIP} $@
+show_xy.o:show_xy.cpp
+	${CXX} ${QTEINC} ${EMBEDDEDFLAG} -c $*.cpp
+
+moc_mylabel.cpp:mylabel.h
+	&{MOC} -o $@ mylabel.h
+moc_mylabel.o:moc_mylabel.cpp
+	${CXX} ${QTEINC} ${EMBEDDEDFLAG} -c $*.cpp
+
+mylabel.o:mylabel.cpp
+	${CXX} ${QTEINC} ${EMBEDDEDFLAG} -c $*.cpp
+
+qmouse.ipaq:qmouse.o
+	${CXX} ${EMBEDDEDFLAG} -o $@  qmouse.o && ${STRIP} $@
+qmouse.o:qmouse.cpp
+	${CXX} ${QTEINC} ${EMBEDDEDFLAG} -c $*.cpp
+main_calibrate.ipaq:${OBJS}
+	${CXX} ${QTEINC} ${QTELIBPATH} ${EMBEDDEDFLAG} -o $@ ${OBJS} ${QTELIB}
+main_calibrate.o:main_calibrate.cpp
+	${CXX} ${QTEINC} ${EMBEDDEDFLAG} -c $*.cpp
+moc_calibrate.cpp:calibrate.h
+	${MOC} -o $@ calibrate.h
+moc_calibrate.o:moc_calibrate.cpp
+	${CXX} ${QTEINC} ${EMBEDDEDFLAG} -c $*.cpp
+calibrate.o:calibrate.cpp
+	${CXX} ${QTEINC} ${EMBEDDEDFLAG} -c $*.cpp
+

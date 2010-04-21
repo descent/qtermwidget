@@ -1,0 +1,14 @@
+#include <qapplication.h>
+
+#include "mylabel.h"
+
+int main(int argc,char **argv)
+{
+ QApplication myapp;
+ Mylabel * showXY = new Mylabel;
+ 
+ 
+ 
+ return myapp.exec();	
+	
+}	

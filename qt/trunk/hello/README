@@ -1,0 +1,9 @@
+Since the classic "hello world" program is too trivial in Qt, We made
+this one - it draws the words "hello world" moving around and in
+rainbow colors.
+這個範例程式我加入了中文支援,
+BIG5 to unicode.
+需要選擇字型。
+
+hello -qws aaa 
+會秀出 aaa
