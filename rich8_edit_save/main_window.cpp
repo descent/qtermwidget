@@ -214,13 +214,59 @@ MainWindow::MainWindow():QMainWindow(),fs_(0)
 #endif
 }
 
+#if defined(Q_OS_MAC)
+const char *mac_version_str()
+{
+  switch (QSysInfo::MacintoshVersion)
+  {
+    case QSysInfo::MV_10_4 :
+    {
+      return "10.4";
+    }
+    case QSysInfo::MV_10_5 :
+    {
+      return "10.5";
+    }
+    case QSysInfo::MV_10_6 :
+    {
+      return "10.6";
+    }
+    default:
+    {
+      return "unknow";
+    }
+  }
+}
+#endif
+
+const char *win_version_str()
+{
+#if 0
+  switch ( QSysInfo::windowsVersion() )
+  {
+    case QSysInfo::WV_5_0:
+    {
+      return "windows 2000";
+    }
+    case QSysInfo::WV_5_1:
+    {
+      return "windows xp";
+    }
+    default:
+    {
+      return "unknow";
+    }
+  }
+  #endif
+}
+
 void MainWindow::about_slot()
 {
   QMessageBox msg_box;
   QString msg;
 #ifdef Q_OS_WIN32
   QSysInfo::windowsVersion ()  ;
-  msg.sprintf("mac osX %s\nQT version: %s", win_version_str(), qVersion());
+  msg.sprintf("windows %s\nQT version: %s", win_version_str(), qVersion());
   //QApplication::winVersion () ; // old version
 #elif defined(Q_OS_LINUX)
   msg.sprintf("Linux/X\nQT version: %s", qVersion());
@@ -244,7 +290,7 @@ void MainWindow::open_file_slot()
   if (fs_)
     fclose(fs_);
   QString file_name = QFileDialog::getOpenFileName(this, tr("Open Rich8 save"));
-
+  if (file_name.isNull()) return;
 
   fs_=fopen(file_name.toStdString().c_str(), "rb+");
   if (!fs_)
@@ -560,51 +606,6 @@ void MainWindow::change_bg_color_slot()
   }
 }
 
-#if defined(Q_OS_MAC)
-const char *mac_version_str()
-{
-  switch (QSysInfo::MacintoshVersion)
-  {
-    case QSysInfo::MV_10_4 :
-    {
-      return "10.4";
-    }
-    case QSysInfo::MV_10_5 :
-    {
-      return "10.5";
-    }
-    case QSysInfo::MV_10_6 :
-    {
-      return "10.6";
-    }
-    default:
-    {
-      return "unknow";
-    }
-  }
-}
-#endif
-
-const char *win_version_str()
-{
-#if 0
-  switch ( QSysInfo::windowsVersion() )
-  {
-    case QSysInfo::WV_5_0:
-    {
-      return "windows 2000";
-    }
-    case QSysInfo::WV_5_1:
-    {
-      return "windows xp";
-    }
-    default:
-    {
-      return "unknow";
-    }
-  }
-  #endif
-}
 
 
 
