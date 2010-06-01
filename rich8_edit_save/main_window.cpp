@@ -285,28 +285,51 @@ void MainWindow::about_slot()
 const int BUF_LEN=32;
 const  int offset=0x4e30+8; // 1P begin card offset
 
+#define QT_FILE_IO
+
 void MainWindow::open_file_slot()
 {
+#ifndef QT_FILE_IO
   if (fs_)
     fclose(fs_);
+#endif
   QString file_name = QFileDialog::getOpenFileName(this, tr("Open Rich8 save"));
+  qDebug() << file_name;
   if (file_name.isNull()) return;
 
-  fs_=fopen(file_name.toStdString().c_str(), "rb+");
-  if (!fs_)
+#ifdef QT_FILE_IO
+  char *buf;
+#else
+  u8 buf[BUF_LEN];
+#endif
+  size_t read_count=10;
+
+  qf_.setFileName(file_name);
+#ifdef QT_FILE_IO
+  if (qf_.open(QIODevice::ReadWrite))
+  {
+    qf_.seek(offset);
+    QByteArray qba=qf_.read(BUF_LEN);
+    buf=qba.data();
+  }
+#else
+  if ( (fs_=fopen(file_name.toStdString().c_str(), "rb+") ))
+  {
+    fseek(fs_, offset, SEEK_SET);
+    read_count=fread(buf, 1, BUF_LEN, fs_);
+  }
+#endif
+
+  else
   {
     QMessageBox msg_box;
 
     msg_box.setText("Cannot open:" + file_name);
-
+    msg_box.exec();
+    return;
   }
+
   formGroupBox->setTitle(file_name);
-  fseek(fs_, offset, SEEK_SET);
-
-  u8 buf[BUF_LEN];
-  size_t read_count=10;
-  read_count=fread(buf, 1, BUF_LEN, fs_);
-
   for (size_t i=0,j=0 ; i < read_count ; i+=4, ++j)
   {
     // buf[i]-1 0 ~ sizeof(card_name)/sizeof(char*)
@@ -319,6 +342,20 @@ void MainWindow::open_file_slot()
 void MainWindow::save_file_slot()
 {
 
+#ifdef QT_FILE_IO
+  qf_.seek(offset);
+
+  for (size_t j=0 ; j < MAX_CARD_NUM ; ++j)
+  {
+    char write_buf[4]="";
+    size_t w_len=0;
+    int idx=card_[j]->currentIndex();
+    write_buf[0]=idx+1;
+    qf_.write(write_buf, 4);
+  }
+
+#else
+
   if (fs_==0)
     return;	   
 
@@ -326,14 +363,15 @@ void MainWindow::save_file_slot()
 
   for (size_t j=0 ; j < MAX_CARD_NUM ; ++j)
   {
-      u8 write_buf[4]="";
-      size_t w_len=0;
-      int idx=card_[j]->currentIndex();
-      write_buf[0]=idx+1;
-      w_len=fwrite(write_buf, 1, 4, fs_);
+    u8 write_buf[4]="";
+    size_t w_len=0;
+    int idx=card_[j]->currentIndex();
+    write_buf[0]=idx+1;
+    w_len=fwrite(write_buf, 1, 4, fs_);
   }
   fclose(fs_);
   fs_=0;
+#endif
 }
 
 

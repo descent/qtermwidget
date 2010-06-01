@@ -16,6 +16,7 @@ class QTabWidget;
 class QComboBox;
 
 #include <QGroupBox>
+#include <QFile>
 
 #include <QTabWidget>
 
@@ -41,6 +42,7 @@ class MainWindow : public QMainWindow
 
 
   private:
+    QFile qf_;
     QComboBox *persion_[MAX_PERSION];
     QComboBox *card_[MAX_CARD_NUM];
     map<u32, QString> card_value_;
