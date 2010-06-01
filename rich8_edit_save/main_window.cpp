@@ -241,7 +241,7 @@ const char *mac_version_str()
 
 const char *win_version_str()
 {
-#if 0
+#if 1
   switch ( QSysInfo::windowsVersion() )
   {
     case QSysInfo::WV_5_0:
@@ -251,6 +251,14 @@ const char *win_version_str()
     case QSysInfo::WV_5_1:
     {
       return "windows xp";
+    }
+    case QSysInfo::WV_6_0:
+    {
+      return "windows vista";
+    }
+    case QSysInfo::WV_6_1:
+    {
+      return "windows 7";
     }
     default:
     {
@@ -266,7 +274,7 @@ void MainWindow::about_slot()
   QString msg;
 #ifdef Q_OS_WIN32
   QSysInfo::windowsVersion ()  ;
-  msg.sprintf("windows %s\nQT version: %s", win_version_str(), qVersion());
+  msg.sprintf("%s\nQT version: %s", win_version_str(), qVersion());
   //QApplication::winVersion () ; // old version
 #elif defined(Q_OS_LINUX)
   msg.sprintf("Linux/X\nQT version: %s", qVersion());
