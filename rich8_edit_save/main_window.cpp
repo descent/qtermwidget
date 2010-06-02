@@ -42,7 +42,9 @@
 #include <QtGlobal> // for qVersion()
 #include <QComboBox>
 #include <QtDebug> // for qDebug()
-#include <QPoint>
+//#include <QPoint>
+#include <QLineEdit>
+
 
 #include "main_window.h"
 
@@ -328,29 +330,17 @@ void MainWindow::open_file_slot()
   qDebug() << file_name;
   if (file_name.isNull()) return;
 
-#ifdef QT_FILE_IO
-  char *buf;
-#else
-  u8 buf[BUF_LEN];
-#endif
-  size_t read_count=10;
-
   qf_.setFileName(file_name);
+
 #ifdef QT_FILE_IO
   if (qf_.open(QIODevice::ReadWrite))
   {
-    qf_.seek(offset);
-    QByteArray qba=qf_.read(BUF_LEN);
-    buf=qba.data();
   }
 #else
   if ( (fs_=fopen(file_name.toStdString().c_str(), "rb+") ))
   {
-    fseek(fs_, offset, SEEK_SET);
-    read_count=fread(buf, 1, BUF_LEN, fs_);
   }
 #endif
-
   else
   {
     QMessageBox msg_box;
@@ -359,8 +349,29 @@ void MainWindow::open_file_slot()
     msg_box.exec();
     return;
   }
-
   formGroupBox->setTitle(file_name);
+  fill_data();
+}
+
+void MainWindow::fill_data()
+{
+
+  size_t read_count=10;
+#ifdef QT_FILE_IO
+  char *buf;
+#else
+  u8 buf[BUF_LEN];
+#endif
+
+#ifdef QT_FILE_IO
+    qf_.seek(offset);
+    QByteArray qba=qf_.read(BUF_LEN);
+    buf=qba.data();
+#else
+    fseek(fs_, offset, SEEK_SET);
+    read_count=fread(buf, 1, BUF_LEN, fs_);
+#endif
+
   for (size_t i=0,j=0 ; i < read_count ; i+=4, ++j)
   {
     // buf[i]-1 0 ~ sizeof(card_name)/sizeof(char*)
@@ -409,6 +420,10 @@ void MainWindow::save_file_slot()
 #endif
 }
 
+void MainWindow::change_player ( int index )
+{
+  qDebug() << "player: " << index;
+}
 
 // copy from: 
 //      /usr/local/Trolltech/Qt-4.6.2/examples/layouts/basiclayouts/dialog.cpp
@@ -436,6 +451,10 @@ void MainWindow::create_form_groupbox()
   players_->addItem("2P");
   players_->addItem("3P");
   players_->addItem("4P");
+
+  //connect(players_, currentIndexChanged ( int ), this,  );
+  QObject::connect(players_, SIGNAL(currentIndexChanged ( int )), this, SLOT(change_player(int)));
+
   for (int i=0 ; i < sizeof(persion_name)/sizeof(char*) ; ++i)
   {
       QString cn; // card name utf8 encoding
@@ -447,6 +466,19 @@ void MainWindow::create_form_groupbox()
   layout->addRow(players_, persion_);
 
   //layout->setSpacing(1);
+
+  cash_ = new QLineEdit(this);
+  point_ = new QLineEdit(this);
+  position_ = new QLineEdit(this);
+  direction_ = new QLineEdit(this);
+  saving_ = new QLineEdit(this);
+
+  layout->addRow(new QLabel("cash"), cash_);
+  layout->addRow(new QLabel("point"), point_);
+  layout->addRow(new QLabel("position"), position_);
+  layout->addRow(new QLabel("direction"), direction_);
+  layout->addRow(new QLabel("saving"), saving_);
+  //layout->addRow(new QLabel("save"), card_[i]);
 
   for (int i=0; i < MAX_CARD_NUM ; ++i)
   {

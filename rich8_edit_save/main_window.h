@@ -14,6 +14,7 @@ class QMenu;
 class QTextEdit;
 class QTabWidget;
 class QComboBox;
+class QLineEdit;
 
 #include <QGroupBox>
 #include <QFile>
@@ -46,6 +47,7 @@ class MainWindow : public QMainWindow
     //QComboBox *players_[MAX_PERSION], *persion_[MAX_PERSION];
     QComboBox *players_, *persion_;
     QComboBox *card_[MAX_CARD_NUM];
+    QLineEdit *cash_, *saving_, *point_, *position_, *direction_;
     map<u32, QString> card_value_;
     QGroupBox *formGroupBox;
     QMenu *file_menu_, *edit_menu_, *help_menu_;
@@ -56,10 +58,14 @@ class MainWindow : public QMainWindow
     QMenu *setting_menu_;
     QAction *change_font_;
     FILE *fs_;
+
+    void fill_data();
+
   public slots:
     void open_file_slot();
     void save_file_slot();
     void save_as_slot();
+    void change_player ( int index ) ;
   private slots:
     void change_font_slot();
     void about_slot();
