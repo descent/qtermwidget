@@ -69,7 +69,7 @@ const char *card_name[]={
 "汽車",
 "遙控骰子",
 "烏龜",  // 0a 00 00 00
-"??",  // 0b
+"轉向",  // 0b
 "路障",  // 0c
 "停留", // 0d
 "", // 0e
@@ -310,13 +310,13 @@ void MainWindow::about_slot()
   qDebug() << centralWidget()->geometry().center();
   //msg_box.move(centralWidget()->geometry().center());
   //msg_box.move(centralWidget()->geometry().center() - rect().center());
-  msg_box.move(centralWidget()->geometry().center() - msg_box.rect().center());
+  //msg_box.move(centralWidget()->geometry().center() - msg_box.rect().center());
   msg_box.exec();
   //qDebug("about");  	
 }
 
 const int BUF_LEN=32;
-const  int offset=0x4e30+8; // 1P begin card offset
+//const  int offset=0x4e30+8; // 1P begin card offset
 
 #define QT_FILE_IO
 
@@ -353,19 +353,70 @@ void MainWindow::open_file_slot()
   fill_data();
 }
 
-void MainWindow::fill_data()
+void MainWindow::fill_data(int offset)
 {
-
   size_t read_count=10;
+  QString result;
 #ifdef QT_FILE_IO
   char *buf;
+  QByteArray qba;
 #else
-  u8 buf[BUF_LEN];
+  u8 buf[BUF_LEN]="";
 #endif
 
+// point data
 #ifdef QT_FILE_IO
     qf_.seek(offset);
-    QByteArray qba=qf_.read(BUF_LEN);
+    qba=qf_.read(1);
+    buf=qba.data();
+#else
+    fseek(fs_, offset, SEEK_SET);
+    read_count=fread(buf, 1, 1, fs_);
+#endif
+    //QTextStream(&result) << buf[0];
+    result.sprintf("%d", buf[0]);
+
+    point_->setText(result);
+
+// cash data
+    offset=0x4e14;
+#ifdef QT_FILE_IO
+    qf_.seek(offset);
+    qba=qf_.read(4);
+    buf=qba.data();
+#else
+    fseek(fs_, offset, SEEK_SET);
+    read_count=fread(buf, 1, 4, fs_);
+#endif
+    int u32_data=0;
+    memcpy(&u32_data, buf, 4);
+    //QTextStream(&result) << buf[0];
+    result.sprintf("%d", u32_data);
+
+    cash_->setText(result);
+
+
+// saving data
+    offset+=4;
+#ifdef QT_FILE_IO
+    qf_.seek(offset);
+    qba=qf_.read(4);
+    buf=qba.data();
+#else
+    fseek(fs_, offset, SEEK_SET);
+    read_count=fread(buf, 1, 4, fs_);
+#endif
+    //QTextStream(&result) << buf[0];
+    memcpy(&u32_data, buf, 4);
+    result.sprintf("%d", u32_data);
+
+    saving_->setText(result);
+
+// card data
+    offset=0x4e38;
+#ifdef QT_FILE_IO
+    qf_.seek(offset);
+    qba=qf_.read(BUF_LEN);
     buf=qba.data();
 #else
     fseek(fs_, offset, SEEK_SET);
@@ -385,7 +436,7 @@ void MainWindow::save_as_slot()
 {
 }
 
-void MainWindow::save_file_slot()
+void MainWindow::save_file_slot(int offset)
 {
 
 #ifdef QT_FILE_IO
@@ -422,7 +473,9 @@ void MainWindow::save_file_slot()
 
 void MainWindow::change_player ( int index )
 {
+  u32 persion_data[4]={0x4e10, 0x4ffc, 0x51e8, 0x53d4};
   qDebug() << "player: " << index;
+
 }
 
 // copy from: 
@@ -458,7 +511,6 @@ void MainWindow::create_form_groupbox()
   for (int i=0 ; i < sizeof(persion_name)/sizeof(char*) ; ++i)
   {
       QString cn; // card name utf8 encoding
-      QString result;
 
       cn = codec->toUnicode(persion_name[i]);
       persion_->addItem(cn);
@@ -468,16 +520,16 @@ void MainWindow::create_form_groupbox()
   //layout->setSpacing(1);
 
   cash_ = new QLineEdit(this);
+  saving_ = new QLineEdit(this);
   point_ = new QLineEdit(this);
   position_ = new QLineEdit(this);
   direction_ = new QLineEdit(this);
-  saving_ = new QLineEdit(this);
 
   layout->addRow(new QLabel("cash"), cash_);
+  layout->addRow(new QLabel("saving"), saving_);
   layout->addRow(new QLabel("point"), point_);
   layout->addRow(new QLabel("position"), position_);
   layout->addRow(new QLabel("direction"), direction_);
-  layout->addRow(new QLabel("saving"), saving_);
   //layout->addRow(new QLabel("save"), card_[i]);
 
   for (int i=0; i < MAX_CARD_NUM ; ++i)

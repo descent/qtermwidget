@@ -2,6 +2,9 @@
 #CONFIG		+= qt debug_and_release warn_on build_all
 #CONFIG		+= qt release warn_on build_all
 
+CONFIG += static 
+#CONFIG += staticlib
+
 QT += core gui
 TARGET 	= rich8_edit_save
 

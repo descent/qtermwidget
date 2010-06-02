@@ -59,11 +59,14 @@ class MainWindow : public QMainWindow
     QAction *change_font_;
     FILE *fs_;
 
-    void fill_data();
+    void fill_data(int offset=0x4e10);
+    void seek_data(int offset)
+    {
+    }
 
   public slots:
     void open_file_slot();
-    void save_file_slot();
+    void save_file_slot(int offset=0x4e10);
     void save_as_slot();
     void change_player ( int index ) ;
   private slots:
