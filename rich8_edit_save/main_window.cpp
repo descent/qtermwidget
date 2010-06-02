@@ -41,7 +41,8 @@
 #include <QMessageBox>
 #include <QtGlobal> // for qVersion()
 #include <QComboBox>
-#include <QtDebug>
+#include <QtDebug> // for qDebug()
+#include <QPoint>
 
 #include "main_window.h"
 
@@ -107,7 +108,12 @@ const char *card_name[]={
 "", // 0x31 00 00 00
 "隱形", // 0x32 00 00 00
 };
-//QString card_name[CARD_NUM];
+
+const char *persion_name[]={
+"烏咪",
+"錢夫人",
+};
+
 
 #define ADD_ACTION(menu, qa_obj, qa_name, slot) \
 { \
@@ -133,11 +139,12 @@ void f(){
 MainWindow::MainWindow():QMainWindow(),fs_(0)
 {
   //card_value_.insert(std::pair<u32, QString>(0x01000000, "abc"));
-  createFormGroupBox();
+  create_form_groupbox();
   setCentralWidget(formGroupBox);
   file_menu_ = menuBar()->addMenu(tr("&File"));
   ADD_ACTION(file_menu_, open_file_, "&Open File", open_file_slot )
-  ADD_ACTION(file_menu_, save_file_, "&Save File", save_file_slot )
+  ADD_ACTION(file_menu_, save_file_, "&Save", save_file_slot )
+  ADD_ACTION(file_menu_, save_as_, "Save &As", save_as_slot )
 
   setting_menu_ = menuBar()->addMenu(tr("&Setting"));
   ADD_ACTION(setting_menu_, change_font_, "&Font", change_font_slot);
@@ -152,7 +159,17 @@ MainWindow::MainWindow():QMainWindow(),fs_(0)
   //int w=desktop_rect.width()/2;
   //int h=desktop_rect.height()/2;
 
-  move(desktop_rect.center());
+  //move(desktop_rect.center());
+  QPoint p=QApplication::desktop()->screen()->rect().center() - centralWidget()->rect().center();
+  qDebug() << p;
+  p = QApplication::desktop()->screen()->rect().center();
+  qDebug() << QApplication::desktop()->screen()->rect().center();
+  qDebug() << centralWidget()->rect().center();
+  qDebug() << centralWidget()->width();
+  qDebug() << centralWidget()->height();
+  qDebug() << width();
+  qDebug() << height();
+  move(p.x()-width()/2, p.y()-height()/2);
   //setGeometry(desktop_rect);
   //qDebug() << desktop_rect.topLeft();
   //qDebug << desktop_rect.bottomRight();
@@ -239,6 +256,7 @@ const char *mac_version_str()
 }
 #endif
 
+#ifdef Q_OS_WIN32
 const char *win_version_str()
 {
 #if 1
@@ -267,6 +285,7 @@ const char *win_version_str()
   }
   #endif
 }
+#endif
 
 void MainWindow::about_slot()
 {
@@ -286,6 +305,10 @@ void MainWindow::about_slot()
   //msg+=" version";
 
   msg_box.setText(msg);
+  qDebug() << centralWidget()->geometry().center();
+  //msg_box.move(centralWidget()->geometry().center());
+  //msg_box.move(centralWidget()->geometry().center() - rect().center());
+  msg_box.move(centralWidget()->geometry().center() - msg_box.rect().center());
   msg_box.exec();
   //qDebug("about");  	
 }
@@ -347,6 +370,10 @@ void MainWindow::open_file_slot()
 
 }
 
+void MainWindow::save_as_slot()
+{
+}
+
 void MainWindow::save_file_slot()
 {
 
@@ -383,14 +410,16 @@ void MainWindow::save_file_slot()
 }
 
 
-// copy from: /usr/local/Trolltech/Qt-4.6.2/examples/layouts/basiclayouts/dialog.cpp
-void MainWindow::createFormGroupBox()
+// copy from: 
+//      /usr/local/Trolltech/Qt-4.6.2/examples/layouts/basiclayouts/dialog.cpp
+void MainWindow::create_form_groupbox()
 {
   QTextCodec *codec = QTextCodec::codecForName("utf8");
-  formGroupBox = new QGroupBox(tr("Form layout"));
+  formGroupBox = new QGroupBox(tr("Select a save file"));
   QFormLayout *layout = new QFormLayout;
   formGroupBox->setLayout(layout);
   QString label_name; // card name utf8 encoding
+#if 0
   for (int i=0; i < MAX_PERSION ; ++i)
   {
     persion_[i] = new QComboBox(this);
@@ -399,22 +428,43 @@ void MainWindow::createFormGroupBox()
     //label_name = result + codec->toUnicode(" P:");
     layout->addRow(new QLabel(result), persion_[i]);
   }
+#endif
+
+  players_ = new QComboBox(this);
+  persion_ = new QComboBox(this);
+  players_->addItem("1P");
+  players_->addItem("2P");
+  players_->addItem("3P");
+  players_->addItem("4P");
+  for (int i=0 ; i < sizeof(persion_name)/sizeof(char*) ; ++i)
+  {
+      QString cn; // card name utf8 encoding
+      QString result;
+
+      cn = codec->toUnicode(persion_name[i]);
+      persion_->addItem(cn);
+  }
+  layout->addRow(players_, persion_);
 
   //layout->setSpacing(1);
 
   for (int i=0; i < MAX_CARD_NUM ; ++i)
   {
+
     card_[i] = new QComboBox(this);
     //layout->addRow(new QLabel(tr("Line 1:")), new QLineEdit);
-    label_name = codec->toUnicode("卡片");
+    label_name = codec->toUnicode("卡片 ");
+
+    QString result;
+
+    QTextStream(&result) << i+1;
     //layout->addRow(new QLabel((label_name)), card_[i]);
-    layout->addRow(new QLabel("card"), card_[i]);
+    layout->addRow(new QLabel(label_name+result), card_[i]);
     //layout->addRow(new QLabel(tr("Line 3:")), new QSpinBox);
 #if 1
     for (size_t j=0 ; j < sizeof(card_name)/sizeof(char*) ; ++j)
     {
       QString cn; // card name utf8 encoding
-
       QString result;
 
       QTextStream(&result) << "(" << hex << j+1 << " 00 00 00)";

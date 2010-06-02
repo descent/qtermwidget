@@ -38,17 +38,18 @@ class MainWindow : public QMainWindow
 
   public:
     MainWindow();
-    void createFormGroupBox();
+    void create_form_groupbox();
 
 
   private:
     QFile qf_;
-    QComboBox *persion_[MAX_PERSION];
+    //QComboBox *players_[MAX_PERSION], *persion_[MAX_PERSION];
+    QComboBox *players_, *persion_;
     QComboBox *card_[MAX_CARD_NUM];
     map<u32, QString> card_value_;
     QGroupBox *formGroupBox;
     QMenu *file_menu_, *edit_menu_, *help_menu_;
-    QAction *open_file_, *save_file_;
+    QAction *open_file_, *save_file_, *save_as_;
     QAction *about_;
 
 
@@ -58,6 +59,7 @@ class MainWindow : public QMainWindow
   public slots:
     void open_file_slot();
     void save_file_slot();
+    void save_as_slot();
   private slots:
     void change_font_slot();
     void about_slot();
