@@ -56,9 +56,11 @@
 
 using namespace std;
 
+const u32 PERSION_DATA[4]={0x4e10, 0x4ffc, 0x51e8, 0x53d4};
 const int CARD_NUM=50;
 //const char *card_name[CARD_NUM]={"購地", "建屋"};
 const char *card_name[]={
+"空白", 
 "購地", 
 "建屋", 
 "拆屋", 
@@ -172,6 +174,8 @@ MainWindow::MainWindow():QMainWindow(),fs_(0)
   qDebug() << width();
   qDebug() << height();
   move(p.x()-width()/2, p.y()-height()/2);
+  //statusBar()->showMessage(tr("Select a save file"));
+
   //setGeometry(desktop_rect);
   //qDebug() << desktop_rect.topLeft();
   //qDebug << desktop_rect.bottomRight();
@@ -310,8 +314,23 @@ void MainWindow::about_slot()
   qDebug() << centralWidget()->geometry().center();
   //msg_box.move(centralWidget()->geometry().center());
   //msg_box.move(centralWidget()->geometry().center() - rect().center());
-  //msg_box.move(centralWidget()->geometry().center() - msg_box.rect().center());
+  //QRect desktop_rect=QApplication::desktop()->screenGeometry();
+  //msg_box.move(desktop_rect.center());
+  qDebug() << "geometry()" << geometry();
+  qDebug() << "rect()" << rect();
+  int w=msg_box.geometry().width();
+  int h=msg_box.geometry().height();
+  qDebug() << "w: " << w;
+  qDebug() << "h: " << h;
+  qDebug() << "rect().center" << rect().center();
+  //msg_box.move(geometry().center().x()-w/2, geometry().center().y()-h/2);
+  //msg_box.move(geometry().x()+w/2, geometry().y()+h/2);
+  msg_box.move(geometry().x()+158/2, geometry().y()+95/2);
   msg_box.exec();
+  w=msg_box.geometry().width();
+  h=msg_box.geometry().height();
+  qDebug() << "w: " << w;
+  qDebug() << "h: " << h;
   //qDebug("about");  	
 }
 
@@ -322,11 +341,18 @@ const int BUF_LEN=32;
 
 void MainWindow::open_file_slot()
 {
+  static QString dirname, basename;
 #ifndef QT_FILE_IO
   if (fs_)
     fclose(fs_);
 #endif
-  QString file_name = QFileDialog::getOpenFileName(this, tr("Open Rich8 save"));
+  QString file_name = QFileDialog::getOpenFileName(this, tr("Open Rich8 save"), dirname);
+  qDebug() << "file_name.lastIndexOf('\') " << file_name.lastIndexOf('/');
+  dirname=file_name.left(file_name.lastIndexOf("/"));
+  qDebug() << "xx file_name.lastIndexOf('\') " << file_name.lastIndexOf('/');
+  basename=file_name.right(file_name.size()-file_name.lastIndexOf('/')-1);
+  qDebug() << "dirname: " << dirname;
+  qDebug() << "basename: " << basename;
   qDebug() << file_name;
   if (file_name.isNull()) return;
 
@@ -350,7 +376,13 @@ void MainWindow::open_file_slot()
     return;
   }
   formGroupBox->setTitle(file_name);
-  fill_data();
+  statusBar()->showMessage(tr("open"));
+  backup_file();
+  fill_data(PERSION_DATA[0]);
+}
+
+void MainWindow::backup_file()
+{
 }
 
 void MainWindow::fill_data(int offset)
@@ -417,6 +449,7 @@ void MainWindow::fill_data(int offset)
 #ifdef QT_FILE_IO
     qf_.seek(offset);
     qba=qf_.read(BUF_LEN);
+    read_count=qba.size();
     buf=qba.data();
 #else
     fseek(fs_, offset, SEEK_SET);
@@ -425,9 +458,13 @@ void MainWindow::fill_data(int offset)
 
   for (size_t i=0,j=0 ; i < read_count ; i+=4, ++j)
   {
+    //qDebug("buf[i]: %x", buf[i]);
     // buf[i]-1 0 ~ sizeof(card_name)/sizeof(char*)
     if (0 <= (buf[i]-1) && (buf[i]-1) <= (sizeof(card_name)/sizeof(char*)-1) )
-      card_[j]->setCurrentIndex(buf[i]-1);
+      if (buf[0]==0xff)
+        card_[j]->setCurrentIndex(0);
+      else
+        card_[j]->setCurrentIndex(buf[i]);
   }
 
 }
@@ -436,19 +473,28 @@ void MainWindow::save_as_slot()
 {
 }
 
-void MainWindow::save_file_slot(int offset)
+void MainWindow::save_file_slot()
 {
+  int offset = PERSION_DATA[players_->currentIndex()];
 
+// card data
+  offset=0x4e38;
 #ifdef QT_FILE_IO
+
   qf_.seek(offset);
 
+  qDebug() << "write offset: " << offset;
   for (size_t j=0 ; j < MAX_CARD_NUM ; ++j)
   {
     char write_buf[4]="";
     size_t w_len=0;
     int idx=card_[j]->currentIndex();
-    write_buf[0]=idx+1;
-    qf_.write(write_buf, 4);
+    if (idx==0)
+      write_buf[3] = write_buf[2] = write_buf[1] = write_buf[0]=0xff;
+    else
+      write_buf[0]=idx;
+    w_len=qf_.write(write_buf, 4);
+    //qDebug() << "w_len: " << w_len;
   }
 
 #else
@@ -469,11 +515,11 @@ void MainWindow::save_file_slot(int offset)
   fclose(fs_);
   fs_=0;
 #endif
+  statusBar()->showMessage(tr("save"));
 }
 
 void MainWindow::change_player ( int index )
 {
-  u32 persion_data[4]={0x4e10, 0x4ffc, 0x51e8, 0x53d4};
   qDebug() << "player: " << index;
 
 }
@@ -551,7 +597,10 @@ void MainWindow::create_form_groupbox()
       QString cn; // card name utf8 encoding
       QString result;
 
-      QTextStream(&result) << "(" << hex << j+1 << " 00 00 00)";
+      if (j==0)
+        QTextStream(&result) << "(ff ff ff ff)";
+      else
+        QTextStream(&result) << "(" << hex << j << " 00 00 00)";
 
       cn = codec->toUnicode(card_name[j]) + codec->toUnicode("卡") + result;
       card_[i]->addItem(cn);

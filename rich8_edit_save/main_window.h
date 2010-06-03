@@ -40,6 +40,7 @@ class MainWindow : public QMainWindow
   public:
     MainWindow();
     void create_form_groupbox();
+    void backup_file();
 
 
   private:
@@ -66,7 +67,7 @@ class MainWindow : public QMainWindow
 
   public slots:
     void open_file_slot();
-    void save_file_slot(int offset=0x4e10);
+    void save_file_slot();
     void save_as_slot();
     void change_player ( int index ) ;
   private slots:
