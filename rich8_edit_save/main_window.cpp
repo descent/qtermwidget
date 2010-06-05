@@ -141,6 +141,7 @@ void f(){
 }
 
 MainWindow::MainWindow():QMainWindow(),fs_(0)
+//MainWindow::MainWindow():QMainWindow(),fs_(0), backup_(false)
 {
   //card_value_.insert(std::pair<u32, QString>(0x01000000, "abc"));
   create_form_groupbox();
@@ -152,6 +153,9 @@ MainWindow::MainWindow():QMainWindow(),fs_(0)
 
   setting_menu_ = menuBar()->addMenu(tr("&Setting"));
   ADD_ACTION(setting_menu_, change_font_, "&Font", change_font_slot);
+  ADD_ACTION(setting_menu_, backup_file_, "&Backup File", backup_file_slot);
+  backup_file_->setCheckable(true);
+  backup_file_->setChecked(true);
 
   help_menu_ = menuBar()->addMenu(tr("&Help"));
   ADD_ACTION(help_menu_, about_, "&About", about_slot)
@@ -341,31 +345,24 @@ const int BUF_LEN=32;
 
 void MainWindow::open_file_slot()
 {
-  static QString dirname, basename;
 #ifdef QT_FILE_IO
-  qf_.close();
 #else
   if (fs_)
     fclose(fs_);
 #endif
-  QString file_name = QFileDialog::getOpenFileName(this, tr("Open Rich8 save"), dirname);
-  qDebug() << "file_name.lastIndexOf('\') " << file_name.lastIndexOf('/');
-  dirname=file_name.left(file_name.lastIndexOf("/"));
-  qDebug() << "xx file_name.lastIndexOf('\') " << file_name.lastIndexOf('/');
-  basename=file_name.right(file_name.size()-file_name.lastIndexOf('/')-1);
-  qDebug() << "dirname: " << dirname;
-  qDebug() << "basename: " << basename;
-  qDebug() << file_name;
-  if (file_name.isNull()) return;
+  file_name_ = QFileDialog::getOpenFileName(this, tr("Open Rich8 save"), dirname_);
+  if (file_name_.isNull()) return;
+  dirname_=file_name_.left(file_name_.lastIndexOf("/"));
+  basename_=file_name_.right(file_name_.size()-file_name_.lastIndexOf('/')-1);
 
-  qf_.setFileName(file_name);
+  qf_.setFileName(file_name_);
 
 #ifdef QT_FILE_IO
-  if (qf_.open(QIODevice::ReadWrite))
+  if (qf_.open(QIODevice::ReadOnly))
   {
   }
 #else
-  if ( (fs_=fopen(file_name.toStdString().c_str(), "rb+") ))
+  if ( (fs_=fopen(file_name_.toStdString().c_str(), "rb+") ))
   {
   }
 #endif
@@ -373,13 +370,25 @@ void MainWindow::open_file_slot()
   {
     QMessageBox msg_box;
 
-    msg_box.setText("Cannot open:" + file_name);
+    msg_box.setText("Cannot open:" + file_name_);
     msg_box.exec();
     return;
   }
-  formGroupBox->setTitle(file_name);
+
+  qba_=qf_.readAll();
+  size_t read_count=qba_.size();
+  if (read_count ==0) 
+  {
+    QMessageBox msg_box;
+
+    msg_box.setText(basename_ + " size is 0." );
+    msg_box.exec();
+    return; // should not happen
+  }
+  qf_.close();
+
+  formGroupBox->setTitle(file_name_);
   statusBar()->showMessage(tr("open"));
-  backup_file();
   fill_data(PERSION_DATA[0]);
 }
 
@@ -392,113 +401,150 @@ void MainWindow::fill_data(int offset)
   size_t read_count=10;
   QString result;
 #ifdef QT_FILE_IO
-  char *buf;
-  QByteArray qba;
-#else
+  const char *buf = qba_.constData();
+#endif
+
+#ifndef QT_FILE_IO
   u8 buf[BUF_LEN]="";
+  fseek(fs_, offset, SEEK_SET);
+  read_count=fread(buf, 1, 1, fs_);
 #endif
 
 // point data
-#ifdef QT_FILE_IO
-    qf_.seek(offset);
-    qba=qf_.read(1);
-    buf=qba.data();
-#else
-    fseek(fs_, offset, SEEK_SET);
-    read_count=fread(buf, 1, 1, fs_);
-#endif
     //QTextStream(&result) << buf[0];
-    result.sprintf("%d", buf[0]);
+    result.sprintf("%d", buf[offset]);
 
     point_->setText(result);
 
-// cash data
-    offset=0x4e14;
 #ifdef QT_FILE_IO
-    qf_.seek(offset);
-    qba=qf_.read(4);
-    buf=qba.data();
 #else
     fseek(fs_, offset, SEEK_SET);
     read_count=fread(buf, 1, 4, fs_);
 #endif
+
+// cash data
+    offset=0x4e14;
     int u32_data=0;
-    memcpy(&u32_data, buf, 4);
+    memcpy(&u32_data, buf+offset, 4);
     //QTextStream(&result) << buf[0];
     result.sprintf("%d", u32_data);
 
     cash_->setText(result);
 
 
-// saving data
-    offset+=4;
 #ifdef QT_FILE_IO
-    qf_.seek(offset);
-    qba=qf_.read(4);
-    buf=qba.data();
 #else
     fseek(fs_, offset, SEEK_SET);
     read_count=fread(buf, 1, 4, fs_);
 #endif
+
+// saving data
+    offset+=4;
     //QTextStream(&result) << buf[0];
-    memcpy(&u32_data, buf, 4);
+    memcpy(&u32_data, buf+offset, 4);
     result.sprintf("%d", u32_data);
 
     saving_->setText(result);
 
-// card data
-    offset=0x4e38;
 #ifdef QT_FILE_IO
-    qf_.seek(offset);
-    qba=qf_.read(BUF_LEN);
-    read_count=qba.size();
-    buf=qba.data();
 #else
     fseek(fs_, offset, SEEK_SET);
     read_count=fread(buf, 1, BUF_LEN, fs_);
 #endif
 
-  for (size_t i=0,j=0 ; i < read_count ; i+=4, ++j)
+// card data
+    offset=0x4e38;
+  qDebug() << "read_count: " << read_count;
+  const char *card_data=buf+offset;
+  for (size_t i=0,j=0 ; i < 32 ; i+=4, ++j)
   {
-    //qDebug("buf[i]: %x", buf[i]);
+    qDebug("card_data[%d]: %x", i, card_data[i]);
+    #if 0
+    qDebug("buf[%d]: %x", i+1, buf[i+1]);
+    qDebug("buf[%d]: %x", i+2, buf[i+2]);
+    qDebug("buf[%d]: %x", i+3, buf[i+3]);
+    #endif
     // buf[i]-1 0 ~ sizeof(card_name)/sizeof(char*)
-    if (0 <= (buf[i]-1) && (buf[i]-1) <= (sizeof(card_name)/sizeof(char*)-1) )
-      if (buf[0]==0xff)
-        card_[j]->setCurrentIndex(0);
-      else
-        card_[j]->setCurrentIndex(buf[i]);
+    u8 ch=card_data[i];
+    //if (buf[i]==0xffffffff)
+    if (ch==0xff)
+    {
+      card_[j]->setCurrentIndex(0);
+    }
+    else if (0 <= (card_data[i]-1) && (card_data[i]-1) <= (sizeof(card_name)/sizeof(char*)-1) )
+         {
+           card_[j]->setCurrentIndex(card_data[i]);
+         }
   }
 
 }
 
 void MainWindow::save_as_slot()
 {
+  backup_fn_= file_name_ + ".bak";
+  file_name_ = QFileDialog::getSaveFileName(this, tr("Open Rich8 to Save As"), dirname_);
+  if (file_name_.isNull()) return;
+  dirname_=file_name_.left(file_name_.lastIndexOf("/"));
+  basename_=file_name_.right(file_name_.size() - file_name_.lastIndexOf('/')-1);
+
+#ifdef QT_FILE_IO
+  save_file_slot();
+#endif // QT_FILE_IO
+}
+
+int MainWindow::write_to_save_file(const QString &w_fn)
+{
+  QFile qf;
+
+  qf.setFileName(w_fn);
+  if (!qf.open(QIODevice::WriteOnly))
+  {
+    QMessageBox msg_box;
+
+    msg_box.setText("Cannot open:" + file_name_ + " to write");
+    msg_box.exec();
+    return -1;
+  }
+  qDebug() << "qba_.size() : " << qba_.size();
+  int w_len=qf.write(qba_);
+  qDebug() << "w_len : " << w_len;
+  qf.close();
+  return 0;
 }
 
 void MainWindow::save_file_slot()
 {
   int offset = PERSION_DATA[players_->currentIndex()];
+  
+  if (backup_fn_.isEmpty())
+    backup_fn_= file_name_ + ".bak";
 
+  if (backup_file_->isChecked())
+  {
+    qDebug() << "backup file: " << backup_fn_;
+    write_to_save_file(backup_fn_);
+  }
 // card data
   offset=0x4e38;
-#ifdef QT_FILE_IO
+  char *buf=qba_.data() + offset;
 
-  qf_.seek(offset);
-
-  qDebug() << "write offset: " << offset;
+  qDebug() << hex << "write offset: " << offset;
   for (size_t j=0 ; j < MAX_CARD_NUM ; ++j)
   {
     char write_buf[4]="";
     size_t w_len=0;
     int idx=card_[j]->currentIndex();
     if (idx==0)
-      write_buf[3] = write_buf[2] = write_buf[1] = write_buf[0]=0xff;
+      buf[3] = buf[2] = buf[1] = buf[0]=0xff;
     else
-      write_buf[0]=idx;
-    w_len=qf_.write(write_buf, 4);
-    //qDebug() << "w_len: " << w_len;
+      buf[0]=idx, buf[1] = buf[2] = buf[3] = 0;
+    buf+=4;
   }
-  qf_.close();
+
+  // wirte to file
+  write_to_save_file(file_name_);
+
+#ifdef QT_FILE_IO
 
 #else
 
@@ -518,7 +564,9 @@ void MainWindow::save_file_slot()
   fclose(fs_);
   fs_=0;
 #endif
+  formGroupBox->setTitle(file_name_);
   statusBar()->showMessage(tr("save"));
+  backup_fn_="";
 }
 
 void MainWindow::change_player ( int index )
@@ -557,7 +605,7 @@ void MainWindow::create_form_groupbox()
   //connect(players_, currentIndexChanged ( int ), this,  );
   QObject::connect(players_, SIGNAL(currentIndexChanged ( int )), this, SLOT(change_player(int)));
 
-  for (int i=0 ; i < sizeof(persion_name)/sizeof(char*) ; ++i)
+  for (size_t i=0 ; i < sizeof(persion_name)/sizeof(char*) ; ++i)
   {
       QString cn; // card name utf8 encoding
 
@@ -613,6 +661,10 @@ void MainWindow::create_form_groupbox()
 
 }
 
+
+void MainWindow::backup_file_slot()
+{
+}
 
 void MainWindow::change_font_slot()
 {

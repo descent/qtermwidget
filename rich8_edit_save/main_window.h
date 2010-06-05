@@ -54,16 +54,15 @@ class MainWindow : public QMainWindow
     QMenu *file_menu_, *edit_menu_, *help_menu_;
     QAction *open_file_, *save_file_, *save_as_;
     QAction *about_;
-
-
     QMenu *setting_menu_;
-    QAction *change_font_;
+    QAction *change_font_, *backup_file_;
+ 
+    QByteArray qba_;
     FILE *fs_;
+    QString dirname_, basename_, file_name_, backup_fn_;
 
     void fill_data(int offset=0x4e10);
-    void seek_data(int offset)
-    {
-    }
+    int write_to_save_file(const QString &w_fn);
 
   public slots:
     void open_file_slot();
@@ -72,6 +71,7 @@ class MainWindow : public QMainWindow
     void change_player ( int index ) ;
   private slots:
     void change_font_slot();
+    void backup_file_slot();
     void about_slot();
 #if 0
     QAction *copy_, *paste_;
