@@ -5,7 +5,7 @@
 CONFIG += static 
 #CONFIG += staticlib
 
-QT += core gui
+QT += core gui xml
 TARGET 	= rich8_edit_save
 
 #MOC_DIR 	= ./.moc

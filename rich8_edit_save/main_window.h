@@ -18,14 +18,12 @@ class QLineEdit;
 
 #include <QGroupBox>
 #include <QFile>
+#include <QDomDocument>
 
 #include <QTabWidget>
 
 //QT_END_NAMESPACE
 #endif
-
-#include <map>
-using namespace std;
 
 typedef unsigned char u8;
 typedef unsigned int u32;
@@ -49,7 +47,6 @@ class MainWindow : public QMainWindow
     QComboBox *players_, *persion_;
     QComboBox *card_[MAX_CARD_NUM];
     QLineEdit *cash_, *saving_, *point_, *position_, *direction_;
-    map<u32, QString> card_value_;
     QGroupBox *formGroupBox;
     QMenu *file_menu_, *edit_menu_, *help_menu_;
     QAction *open_file_, *save_file_, *save_as_;
@@ -60,16 +57,24 @@ class MainWindow : public QMainWindow
     QByteArray qba_;
     FILE *fs_;
     QString dirname_, basename_, file_name_, backup_fn_;
+    QDomDocument dom_doc_;
 
     void fill_data(int offset=0x4e10);
     int write_to_save_file(const QString &w_fn);
+    void open_rich8_cfg();
+
+  protected:
+    void closeEvent ( QCloseEvent * event );
 
   public slots:
     void open_file_slot();
     void save_file_slot();
     void save_as_slot();
     void change_player ( int index ) ;
+
+
   private slots:
+    bool close();
     void change_font_slot();
     void backup_file_slot();
     void about_slot();

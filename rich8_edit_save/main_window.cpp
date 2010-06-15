@@ -38,12 +38,16 @@
 //! [0]
 #include <QtGui>
 #include <QActionGroup>
+#if 1
 #include <QMessageBox>
-#include <QtGlobal> // for qVersion()
 #include <QComboBox>
-#include <QtDebug> // for qDebug()
 //#include <QPoint>
 #include <QLineEdit>
+#endif
+
+
+#include <QtGlobal> // for qVersion()
+#include <QtDebug> // for qDebug()
 
 
 #include "main_window.h"
@@ -56,6 +60,11 @@
 
 using namespace std;
 
+#ifdef Q_OS_WIN32
+const QString config_fn="\.rich8_edit_save.cfg";
+#else
+const QString config_fn="/.rich8_edit_save.cfg";
+#endif
 const u32 PERSION_DATA[4]={0x4e10, 0x4ffc, 0x51e8, 0x53d4};
 const int CARD_NUM=50;
 //const char *card_name[CARD_NUM]={"購地", "建屋"};
@@ -131,20 +140,22 @@ const char *persion_name[]={
   qa_obj->setShortcut(QKeySequence(keybind)); \
 }
 
-
-void f(){
-  //QTextCodec *codec = QTextCodec::codecForName("utf8");
-  //QByteArray data = codec->fromUnicode(msgContent);
-//将msgContent转换成QByteArray,在接收时使用
-
-  //card_name[0]=a;
-}
-
-MainWindow::MainWindow():QMainWindow(),fs_(0)
 //MainWindow::MainWindow():QMainWindow(),fs_(0), backup_(false)
+MainWindow::MainWindow():QMainWindow(),fs_(0)
 {
-  //card_value_.insert(std::pair<u32, QString>(0x01000000, "abc"));
   create_form_groupbox();
+  open_rich8_cfg();
+
+  // init font
+  QDomNodeList nodes=dom_doc_.elementsByTagName("ui_font");
+  QDomElement e = nodes.at(0).toElement(); // try to convert the node to an element.
+  bool ok=false;
+  QFont f(e.attribute("family"), e.attribute("pointSize").toInt(&ok, 10), e.attribute("weight").toInt(&ok, 10));
+  f.setStyle((QFont::Style)e.attribute("style").toInt(&ok, 10));
+  qDebug() << "ok: " << ok;
+
+  setFont(f);
+
   setCentralWidget(formGroupBox);
   file_menu_ = menuBar()->addMenu(tr("&File"));
   ADD_ACTION(file_menu_, open_file_, "&Open File", open_file_slot )
@@ -155,7 +166,14 @@ MainWindow::MainWindow():QMainWindow(),fs_(0)
   ADD_ACTION(setting_menu_, change_font_, "&Font", change_font_slot);
   ADD_ACTION(setting_menu_, backup_file_, "&Backup File", backup_file_slot);
   backup_file_->setCheckable(true);
-  backup_file_->setChecked(true);
+
+  nodes=dom_doc_.elementsByTagName("backup_file");
+  e = nodes.at(0).toElement(); // try to convert the node to an element.
+
+  if (e.attribute("option")=="y")
+    backup_file_->setChecked(true);
+  else
+    backup_file_->setChecked(false);
 
   help_menu_ = menuBar()->addMenu(tr("&Help"));
   ADD_ACTION(help_menu_, about_, "&About", about_slot)
@@ -178,6 +196,13 @@ MainWindow::MainWindow():QMainWindow(),fs_(0)
   qDebug() << width();
   qDebug() << height();
   move(p.x()-width()/2, p.y()-height()/2);
+
+  qDebug() << "QDir::currentPath(): " << QDir::currentPath();
+  qDebug() << "QDir::homePath(): " << QDir::homePath();
+  //QString QDir::toNativeSeparators ( const QString & pathName )   [static]
+
+
+
   //statusBar()->showMessage(tr("Select a save file"));
 
   //setGeometry(desktop_rect);
@@ -240,6 +265,162 @@ MainWindow::MainWindow():QMainWindow(),fs_(0)
   //tab_widget_->setFocus();
 #endif
 }
+
+void MainWindow::closeEvent ( QCloseEvent * event )
+{
+  QDomNodeList nodes=dom_doc_.elementsByTagName("backup_file");
+  QDomElement e = nodes.at(0).toElement(); // try to convert the node to an element.
+
+  if (backup_file_->isChecked())
+  {
+    qDebug("y");
+    e.setAttribute("option", "y");
+  }
+  else
+  {
+    qDebug("n");
+    e.setAttribute("option", "n");
+  }
+  QString cfg_fn_path=QDir::homePath() + config_fn;
+
+  QFile file(cfg_fn_path);
+  if (file.open(QIODevice::WriteOnly | QIODevice::Text))
+  {
+    QTextStream out(&file);
+    qDebug() << "dom_doc_: " << dom_doc_.toString();
+    out << dom_doc_;
+    file.close();
+  }
+
+
+  event->accept();
+
+#if 0
+  if (maybeSave()) {
+    writeSettings();
+    event->accept();
+  } else 
+  {
+    event->ignore();
+  }
+#endif
+}
+
+void MainWindow::open_rich8_cfg()
+{
+  QString cfg_fn_path=QDir::homePath() + config_fn;
+  qDebug() << "cfg_fn_path: " << cfg_fn_path;
+  if (QFile::exists (cfg_fn_path))
+  {
+    QFile file(cfg_fn_path);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+      return;
+
+    dom_doc_.setContent(&file);
+    file.close();
+
+    QString xml_txt = dom_doc_.toString();
+    qDebug() << "xml_txt: " << xml_txt;
+    //QDomElement tag=dom_doc_.elementById("font");
+    //QDomNodeList tag=dom_doc_.elementsByTagName("font");
+    QDomNodeList tag=dom_doc_.elementsByTagName("backup_file");
+
+#if 0
+    for (int i=0 ; i < tag.length() ; ++i)
+    {
+      QDomNode n=tag.at(i);
+
+      QDomElement e = tag.at(i).toElement(); // try to convert the node to an element.
+      qDebug() << "e: " << e.text();
+      qDebug() << "tag.at(i).nodeName(): " << tag.at(i).nodeName();
+
+      qDebug() << "childNodes().length(): " << n.childNodes().length();
+      QDomNode old_node=n.childNodes().at(0);
+      QDomText new_node=dom_doc_.createTextNode("no");
+      n.replaceChild(new_node, old_node);
+
+      #if 0
+      qDebug() << "aaa e: " << n.nodeValue();
+      n.setNodeValue("no");
+      qDebug() << "xxx e: " << n.nodeValue();
+      #endif
+    }
+#endif
+  } // The file does not exist, create dom doc
+  else
+  {
+    QDomElement root = dom_doc_.createElement("rich8_cfg");
+    dom_doc_.appendChild(root);
+  
+    QDomElement tag = dom_doc_.createElement("cfg_path");
+    root.appendChild(tag);
+  
+    QDomText t = dom_doc_.createTextNode(cfg_fn_path);
+    tag.appendChild(t);
+
+#if 0
+    tag = dom_doc_.createElement("ui_font_pointSize");
+    root.appendChild(tag);
+  
+    t = dom_doc_.createTextNode("ui_font_pointSize");
+    tag.appendChild(t);
+  
+    tag = dom_doc_.createElement("ui_font_weight");
+    root.appendChild(tag);
+  
+    t = dom_doc_.createTextNode("ui_font_weight");
+    tag.appendChild(t);
+
+    tag = dom_doc_.createElement("ui_font_style");
+    root.appendChild(tag);
+  
+    t = dom_doc_.createTextNode("ui_font_style");
+    tag.appendChild(t);
+#endif
+    tag = dom_doc_.createElement("ui_font");
+    root.appendChild(tag);
+
+    tag.setAttribute("family", "f1");
+    tag.setAttribute("pointSize", "p1");
+    tag.setAttribute("weight", "w1");
+    tag.setAttribute("style", "s1");
+  
+    t = dom_doc_.createTextNode("ui_font");
+    tag.appendChild(t);
+
+
+    tag = dom_doc_.createElement("backup_file");
+    root.appendChild(tag);
+  
+    t = dom_doc_.createTextNode("yes");
+    tag.appendChild(t);
+  
+    tag = dom_doc_.createElement("open_file_path");
+    root.appendChild(tag);
+    t = dom_doc_.createTextNode(".");
+    tag.appendChild(t);
+  
+#if 0
+    QString xml = dom_doc_.toString();
+    qDebug() << "xml: " << xml;
+
+     QFile file(cfg_fn_path);
+     if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+         return;
+
+     QTextStream out(&file);
+     out << doc;
+  file.close();
+#endif
+  }
+
+}
+
+bool MainWindow::close()
+{
+  return QWidget::close();
+}
+
 
 #if defined(Q_OS_MAC)
 const char *mac_version_str()
@@ -314,6 +495,12 @@ void MainWindow::about_slot()
 #endif
   //msg+=" version";
 
+   // ref : Qt-4.6.2/examples/xml/dombookmarks/mainwindow.cpp
+   QMessageBox::about(this, tr("About Rich8 Save File Editor"), msg);
+
+#if 0
+
+
   msg_box.setText(msg);
   qDebug() << centralWidget()->geometry().center();
   //msg_box.move(centralWidget()->geometry().center());
@@ -336,6 +523,7 @@ void MainWindow::about_slot()
   qDebug() << "w: " << w;
   qDebug() << "h: " << h;
   //qDebug("about");  	
+  #endif
 }
 
 const int BUF_LEN=32;
@@ -350,6 +538,17 @@ void MainWindow::open_file_slot()
   if (fs_)
     fclose(fs_);
 #endif
+
+  QDomNodeList nodes=dom_doc_.elementsByTagName("open_file_path");
+  QDomElement e = nodes.at(0).toElement(); // try to convert the node to an element.
+
+  if (dirname_.isNull())
+  {
+    dirname_= e.attribute("path");
+    qDebug() << "xx dirname_:" << dirname_;
+  }
+  
+
   file_name_ = QFileDialog::getOpenFileName(this, tr("Open Rich8 save"), dirname_);
   if (file_name_.isNull()) return;
   dirname_=file_name_.left(file_name_.lastIndexOf("/"));
@@ -368,10 +567,21 @@ void MainWindow::open_file_slot()
 #endif
   else
   {
+#if 0
     QMessageBox msg_box;
 
     msg_box.setText("Cannot open:" + file_name_);
     msg_box.exec();
+#endif
+
+
+    // ref : Qt-4.6.2/examples/xml/dombookmarks/mainwindow.cpp
+    QMessageBox::warning(this, tr("rich8 save editor"),
+                             tr("Cannot read file %1:\n%2.")
+                             .arg(file_name_)
+                             .arg(qf_.errorString()));
+
+
     return;
   }
 
@@ -388,6 +598,10 @@ void MainWindow::open_file_slot()
   qf_.close();
 
   formGroupBox->setTitle(file_name_);
+
+  e.setAttribute("path", dirname_);
+  qDebug() << "yy dirname_:" << dirname_;
+
   statusBar()->showMessage(tr("open"));
   fill_data(PERSION_DATA[0]);
 }
@@ -499,10 +713,19 @@ int MainWindow::write_to_save_file(const QString &w_fn)
   qf.setFileName(w_fn);
   if (!qf.open(QIODevice::WriteOnly))
   {
+#if 0
     QMessageBox msg_box;
 
     msg_box.setText("Cannot open:" + file_name_ + " to write");
     msg_box.exec();
+#endif
+
+    QMessageBox::warning(this, tr("rich8 save editor"),
+                             tr("Cannot save file %1:\n%2.")
+                             .arg(w_fn)
+                             .arg(qf.errorString()));
+
+
     return -1;
   }
   qDebug() << "qba_.size() : " << qba_.size();
@@ -693,6 +916,26 @@ void MainWindow::change_font_slot()
     qDebug("not ok");
   }
 
+  QDomNodeList nodes=dom_doc_.elementsByTagName("ui_font");
+  QDomElement e = nodes.at(0).toElement(); // try to convert the node to an element.
+  e.setAttribute("family", terminal_font.family());
+  e.setAttribute("pointSize", terminal_font.pointSize());
+  e.setAttribute("weight", terminal_font.weight());
+  e.setAttribute("style", terminal_font.style());
+
+  #if 0
+  for (int i=0 ; i < nodes.length() ; ++i)
+  {
+    QDomElement e = nodes.at(i).toElement(); // try to convert the node to an element.
+    qDebug() << "e: " << e.text();
+    //e.text()
+  }
+
+    qDebug() << "terminal_font.family()" << terminal_font.family();
+    qDebug() << "terminal_font.pointSize()" << terminal_font.pointSize();
+    qDebug() << "terminal_font.weight()" << terminal_font.weight();
+    qDebug() << "terminal_font.style()" << terminal_font.style();
+  #endif
 }
 
 #if 0
