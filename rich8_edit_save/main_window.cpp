@@ -60,7 +60,7 @@ using namespace std;
 //const u32 CARD_OFFSET_1P = 0x4e38;
 u32 CARD_OFFSET_1P = 0x4e2c;
 const u32 CASH_DIFF = 0x4e38-0x4e14; // cash, 4 bytes
-const u32 SAVING_DIFF = 0x4e38-0x4e14+0x4; // saving, 4 bytes
+const u32 SAVING_DIFF = CASH_DIFF+0x4; // saving, 4 bytes
 const u32 POINT_DIFF = 0x4e38-0x4e10; // point, 2bytes
 
 const u32 PLAYER_DIFF = 0x5024-0x4e38;
@@ -675,7 +675,7 @@ void MainWindow::fill_data(int offset)
 // saving data
     //offset+=4;
     //QTextStream(&result) << buf[0];
-    memcpy(&u32_data, buf+offset-SAVING_DIFF, 4);
+    memcpy(&u32_data, buf+offset-CASH_DIFF+0x4, 4);
     result.sprintf("%d", u32_data);
 
     saving_->setText(result);
