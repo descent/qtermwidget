@@ -26,6 +26,7 @@ class QLineEdit;
 #endif
 
 typedef unsigned char u8;
+typedef unsigned short u16;
 typedef unsigned int u32;
 
 const u8 MAX_CARD_NUM=8;
@@ -46,6 +47,7 @@ class MainWindow : public QMainWindow
     //QComboBox *players_[MAX_PERSION], *persion_[MAX_PERSION];
     QComboBox *players_, *persion_;
     QComboBox *card_[MAX_CARD_NUM];
+    QComboBox *save_file_offset_;
     QLineEdit *cash_, *saving_, *point_, *position_, *direction_;
     QGroupBox *formGroupBox;
     QMenu *file_menu_, *edit_menu_, *help_menu_;
@@ -58,6 +60,7 @@ class MainWindow : public QMainWindow
     FILE *fs_;
     QString dirname_, basename_, file_name_, backup_fn_;
     QDomDocument dom_doc_;
+    u32 persion_data_[4];
 
     void fill_data(int offset=0x4e10);
     int write_to_save_file(const QString &w_fn);
@@ -71,6 +74,7 @@ class MainWindow : public QMainWindow
     void save_file_slot();
     void save_as_slot();
     void change_player ( int index ) ;
+    void change_save_file_offset ( int index );
 
 
   private slots:

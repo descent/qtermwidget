@@ -35,7 +35,6 @@
 **
 ****************************************************************************/
 
-//! [0]
 #include <QtGui>
 #include <QActionGroup>
 #if 1
@@ -50,26 +49,40 @@
 #include <QtDebug> // for qDebug()
 
 
-#include "main_window.h"
-
-
 
 #include <cstdio>
 #include <cstdlib>
 
-
 using namespace std;
+
+#include "main_window.h"
+
+//const u32 CARD_OFFSET_1P = 0x4e38;
+u32 CARD_OFFSET_1P = 0x4e2c;
+const u32 CASH_DIFF = 0x4e38-0x4e14; // cash, 4 bytes
+const u32 SAVING_DIFF = 0x4e38-0x4e14+0x4; // saving, 4 bytes
+const u32 POINT_DIFF = 0x4e38-0x4e10; // point, 2bytes
+
+const u32 PLAYER_DIFF = 0x5024-0x4e38;
+const u32 CARD_OFFSET_2P = CARD_OFFSET_1P + PLAYER_DIFF;
+const u32 CARD_OFFSET_3P = CARD_OFFSET_2P + PLAYER_DIFF;
+const u32 CARD_OFFSET_4P = CARD_OFFSET_3P + PLAYER_DIFF;
+
+const u32 OFFSET[]={
+	            0x4e20, // last stage, 2P
+                    0x4e2c,
+                    0x4e38,
+                   };
 
 #ifdef Q_OS_WIN32
 const QString config_fn="\.rich8_edit_save.cfg";
 #else
 const QString config_fn="/.rich8_edit_save.cfg";
 #endif
-const u32 PERSION_DATA[4]={0x4e10, 0x4ffc, 0x51e8, 0x53d4};
 const int CARD_NUM=50;
 //const char *card_name[CARD_NUM]={"購地", "建屋"};
 const char *card_name[]={
-"空白", 
+"空白",  // 00 00 00 00, if ff ff ff ff use the field
 "購地", 
 "建屋", 
 "拆屋", 
@@ -118,13 +131,14 @@ const char *card_name[]={
 "保鏢", // 0x2e 00 00 00
 "鑽石", // 0x2f 00 00 00
 "地王", // 0x30 00 00 00
-"", // 0x31 00 00 00
-"隱形", // 0x32 00 00 00
+"隱形", // 0x31 00 00 00
+"未知", // 0x32 00 00 00, wrong data, this is not card data.
 };
 
 const char *persion_name[]={
 "烏咪",
 "錢夫人",
+"大老千",
 };
 
 
@@ -145,6 +159,10 @@ MainWindow::MainWindow():QMainWindow(),fs_(0)
 {
   create_form_groupbox();
   open_rich8_cfg();
+  persion_data_[0]= OFFSET[0];
+  persion_data_[1]= persion_data_[0] + PLAYER_DIFF;
+  persion_data_[2]= persion_data_[1] + PLAYER_DIFF;
+  persion_data_[3]= persion_data_[2] + PLAYER_DIFF;
 
   // init font
   QDomNodeList nodes=dom_doc_.elementsByTagName("ui_font");
@@ -545,7 +563,6 @@ void MainWindow::open_file_slot()
   if (dirname_.isNull())
   {
     dirname_= e.attribute("path");
-    qDebug() << "xx dirname_:" << dirname_;
   }
   
 
@@ -600,18 +617,19 @@ void MainWindow::open_file_slot()
   formGroupBox->setTitle(file_name_);
 
   e.setAttribute("path", dirname_);
-  qDebug() << "yy dirname_:" << dirname_;
 
   statusBar()->showMessage(tr("open"));
-  fill_data(PERSION_DATA[0]);
+  fill_data(persion_data_[0]);
 }
 
 void MainWindow::backup_file()
 {
 }
 
+// offset is card offset
 void MainWindow::fill_data(int offset)
 {
+  qDebug() << hex << "offset : " << offset;
   size_t read_count=10;
   QString result;
 #ifdef QT_FILE_IO
@@ -626,7 +644,10 @@ void MainWindow::fill_data(int offset)
 
 // point data
     //QTextStream(&result) << buf[0];
-    result.sprintf("%d", buf[offset]);
+    u8 u8_data=0;
+    u16 u16_data=0;
+    memcpy(&u16_data, buf+offset-POINT_DIFF, 2);
+    result.sprintf("%d", u16_data);
 
     point_->setText(result);
 
@@ -637,9 +658,8 @@ void MainWindow::fill_data(int offset)
 #endif
 
 // cash data
-    offset=0x4e14;
     int u32_data=0;
-    memcpy(&u32_data, buf+offset, 4);
+    memcpy(&u32_data, buf+offset-CASH_DIFF, 4);
     //QTextStream(&result) << buf[0];
     result.sprintf("%d", u32_data);
 
@@ -653,9 +673,9 @@ void MainWindow::fill_data(int offset)
 #endif
 
 // saving data
-    offset+=4;
+    //offset+=4;
     //QTextStream(&result) << buf[0];
-    memcpy(&u32_data, buf+offset, 4);
+    memcpy(&u32_data, buf+offset-SAVING_DIFF, 4);
     result.sprintf("%d", u32_data);
 
     saving_->setText(result);
@@ -667,12 +687,17 @@ void MainWindow::fill_data(int offset)
 #endif
 
 // card data
-    offset=0x4e38;
-  qDebug() << "read_count: " << read_count;
+    //offset=0x4e38;
+    //offset=0x4e2c;
+  //qDebug() << "read_count: " << read_count;
   const char *card_data=buf+offset;
+  qDebug() << hex << "card data offset: " << offset;
   for (size_t i=0,j=0 ; i < 32 ; i+=4, ++j)
   {
+    u32 u32_data=0;
+    memcpy(&u32_data, card_data+i, 4);
     qDebug("card_data[%d]: %x", i, card_data[i]);
+    qDebug() << hex << "card u32 data: " << u32_data;
     #if 0
     qDebug("buf[%d]: %x", i+1, buf[i+1]);
     qDebug("buf[%d]: %x", i+2, buf[i+2]);
@@ -681,14 +706,26 @@ void MainWindow::fill_data(int offset)
     // buf[i]-1 0 ~ sizeof(card_name)/sizeof(char*)
     u8 ch=card_data[i];
     //if (buf[i]==0xffffffff)
-    if (ch==0xff)
+    if (u32_data==0xffffffff)
     {
       card_[j]->setCurrentIndex(0);
     }
-    else if (0 <= (card_data[i]-1) && (card_data[i]-1) <= (sizeof(card_name)/sizeof(char*)-1) )
+    else if (0 <= (u32_data-1) && (u32_data-1) <= (sizeof(card_name)/sizeof(char*)-2) )
          {
-           card_[j]->setCurrentIndex(card_data[i]);
+           card_[j]->setCurrentIndex(u32_data);
          }
+         else // unknow card data
+	 {
+           qDebug() << "unknow card data";
+           card_[j]->setCurrentIndex(sizeof(card_name)/sizeof(char*)-1);
+#if 0
+           card_[i]->addItem(tr("unknow card (%1 %2 %3 %4)")
+			     .arg((int)card_data[0], 0, 16)
+			     .arg((int)card_data[1], 0, 16)
+			     .arg((int)card_data[2], 0, 16)
+			     .arg((int)card_data[3], 0, 16) );
+#endif
+	 }
   }
 
 }
@@ -737,7 +774,7 @@ int MainWindow::write_to_save_file(const QString &w_fn)
 
 void MainWindow::save_file_slot()
 {
-  int offset = PERSION_DATA[players_->currentIndex()];
+  int offset = persion_data_[players_->currentIndex()];
   
   if (backup_fn_.isEmpty())
     backup_fn_= file_name_ + ".bak";
@@ -748,7 +785,9 @@ void MainWindow::save_file_slot()
     write_to_save_file(backup_fn_);
   }
 // card data
-  offset=0x4e38;
+  //offset=0x4e38;
+  //offset=0x4e2c; // 舞美拉 3p
+  //offset=CARD_OFFSET_1P;
   char *buf=qba_.data() + offset;
 
   qDebug() << hex << "write offset: " << offset;
@@ -792,6 +831,18 @@ void MainWindow::save_file_slot()
   backup_fn_="";
 }
 
+void MainWindow::change_save_file_offset ( int index )
+{
+  //qDebug() << "MainWindow::change_save_file_offset";
+  //CARD_OFFSET_1P = OFFSET[index];
+  persion_data_[0]= OFFSET[index];
+  persion_data_[1]= persion_data_[0] + PLAYER_DIFF;
+  persion_data_[2]= persion_data_[1] + PLAYER_DIFF;
+  persion_data_[3]= persion_data_[2] + PLAYER_DIFF;
+  qDebug() << hex << "persion_data_[" << players_->currentIndex() << "] : "  << persion_data_[players_->currentIndex()];
+  fill_data(persion_data_[players_->currentIndex()]);
+}
+
 void MainWindow::change_player ( int index )
 {
   qDebug() << "player: " << index;
@@ -807,6 +858,22 @@ void MainWindow::create_form_groupbox()
   QFormLayout *layout = new QFormLayout;
   formGroupBox->setLayout(layout);
   QString label_name; // card name utf8 encoding
+
+
+  save_file_offset_ = new QComboBox(this);
+  for (int i=0 ; i < sizeof(OFFSET)/sizeof(sizeof(u32)) ; ++i)
+  {
+    save_file_offset_->addItem(QString("0x%1").arg(OFFSET[i], 0, 16));
+  }
+  QObject::connect(save_file_offset_, SIGNAL(currentIndexChanged ( int )), this, SLOT(change_save_file_offset(int)));
+#if 0
+  save_file_offset->addItem("0x4e20");
+  save_file_offset->addItem("0x4e2c");
+  save_file_offset->addItem("0x4e38");
+#endif
+  layout->addRow(new QLabel(tr("card offset")), save_file_offset_);
+
+
 #if 0
   for (int i=0; i < MAX_PERSION ; ++i)
   {
@@ -873,8 +940,14 @@ void MainWindow::create_form_groupbox()
 
       if (j==0)
         QTextStream(&result) << "(ff ff ff ff)";
-      else
-        QTextStream(&result) << "(" << hex << j << " 00 00 00)";
+      else if (j==(sizeof(card_name)/sizeof(char*)-1)) // last unknow card
+           {
+              QTextStream(&result) << "(" << hex << j << " 00 00 00)";
+           }
+           else
+	   {
+              QTextStream(&result) << "(" << hex << j << " 00 00 00)";
+	   }
 
       cn = codec->toUnicode(card_name[j]) + codec->toUnicode("卡") + result;
       card_[i]->addItem(cn);
