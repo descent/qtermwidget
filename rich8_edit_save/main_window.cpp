@@ -839,6 +839,10 @@ void MainWindow::change_save_file_offset ( int index )
   persion_data_[1]= persion_data_[0] + PLAYER_DIFF;
   persion_data_[2]= persion_data_[1] + PLAYER_DIFF;
   persion_data_[3]= persion_data_[2] + PLAYER_DIFF;
+
+  for (int i=0 ; i < 4; ++i)
+    qDebug() << hex << "persion_data_[" << i << "] : "  << persion_data_[i];
+
   qDebug() << hex << "persion_data_[" << players_->currentIndex() << "] : "  << persion_data_[players_->currentIndex()];
   fill_data(persion_data_[players_->currentIndex()]);
 }
@@ -846,7 +850,7 @@ void MainWindow::change_save_file_offset ( int index )
 void MainWindow::change_player ( int index )
 {
   qDebug() << "player: " << index;
-
+  fill_data(persion_data_[players_->currentIndex()]);
 }
 
 // copy from: 
