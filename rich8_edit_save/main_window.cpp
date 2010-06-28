@@ -704,7 +704,7 @@ void MainWindow::fill_data(int offset)
     qDebug("buf[%d]: %x", i+3, buf[i+3]);
     #endif
     // buf[i]-1 0 ~ sizeof(card_name)/sizeof(char*)
-    u8 ch=card_data[i];
+    //u8 ch=card_data[i];
     //if (buf[i]==0xffffffff)
     if (u32_data==0xffffffff)
     {
@@ -784,17 +784,38 @@ void MainWindow::save_file_slot()
     qDebug() << "backup file: " << backup_fn_;
     write_to_save_file(backup_fn_);
   }
+  // point data
+  char *buf=qba_.data();
+  QString qstr=point_->text();
+  bool ok;
+  u16 u16_data = qstr.toInt(&ok, 10);
+  memcpy(buf+offset-POINT_DIFF, &u16_data, 2);
+  //qDebug() << "point_->text(): " << point_->text();
+  //qDebug() << "u16_data: " << u16_data;
+
+// cash data
+    qstr=cash_->text();
+    int u32_data = qstr.toInt(&ok, 10);
+    memcpy(buf+offset-CASH_DIFF, &u32_data, 4);
+
+    // saving data
+    qstr=saving_->text();
+    u32_data = qstr.toInt(&ok, 10);
+    memcpy(buf+offset-CASH_DIFF+0x4, &u32_data, 4);
+
 // card data
   //offset=0x4e38;
   //offset=0x4e2c; // 舞美拉 3p
   //offset=CARD_OFFSET_1P;
-  char *buf=qba_.data() + offset;
+  buf=qba_.data() + offset;
 
   qDebug() << hex << "write offset: " << offset;
+
+  // write card data
   for (size_t j=0 ; j < MAX_CARD_NUM ; ++j)
   {
-    char write_buf[4]="";
-    size_t w_len=0;
+    //char write_buf[4]="";
+    //size_t w_len=0;
     int idx=card_[j]->currentIndex();
     if (idx==0)
       buf[3] = buf[2] = buf[1] = buf[0]=0xff;
