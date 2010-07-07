@@ -57,6 +57,11 @@ using namespace std;
 
 #include "main_window.h"
 
+#include "tes.h"
+
+QTextEdit *text_edit;
+QTextCodec *big5_codec;
+
 //const u32 CARD_OFFSET_1P = 0x4e38;
 u32 CARD_OFFSET_1P = 0x4e2c;
 const u32 CASH_DIFF = 0x4e38-0x4e14; // cash, 4 bytes
@@ -140,6 +145,7 @@ const char *persion_name[]={
 "錢夫人",
 "大老千",
 };
+char big5_char[]={0xa2, 0x65, 0};
 
 
 #define ADD_ACTION(menu, qa_obj, qa_name, slot) \
@@ -170,7 +176,6 @@ MainWindow::MainWindow():QMainWindow(),fs_(0)
   bool ok=false;
   QFont f(e.attribute("family"), e.attribute("pointSize").toInt(&ok, 10), e.attribute("weight").toInt(&ok, 10));
   f.setStyle((QFont::Style)e.attribute("style").toInt(&ok, 10));
-  qDebug() << "ok: " << ok;
 
   setFont(f);
 
@@ -305,7 +310,6 @@ void MainWindow::closeEvent ( QCloseEvent * event )
   if (file.open(QIODevice::WriteOnly | QIODevice::Text))
   {
     QTextStream out(&file);
-    qDebug() << "dom_doc_: " << dom_doc_.toString();
     out << dom_doc_;
     file.close();
   }
@@ -338,32 +342,8 @@ void MainWindow::open_rich8_cfg()
     file.close();
 
     QString xml_txt = dom_doc_.toString();
-    qDebug() << "xml_txt: " << xml_txt;
-    //QDomElement tag=dom_doc_.elementById("font");
-    //QDomNodeList tag=dom_doc_.elementsByTagName("font");
     QDomNodeList tag=dom_doc_.elementsByTagName("backup_file");
 
-#if 0
-    for (int i=0 ; i < tag.length() ; ++i)
-    {
-      QDomNode n=tag.at(i);
-
-      QDomElement e = tag.at(i).toElement(); // try to convert the node to an element.
-      qDebug() << "e: " << e.text();
-      qDebug() << "tag.at(i).nodeName(): " << tag.at(i).nodeName();
-
-      qDebug() << "childNodes().length(): " << n.childNodes().length();
-      QDomNode old_node=n.childNodes().at(0);
-      QDomText new_node=dom_doc_.createTextNode("no");
-      n.replaceChild(new_node, old_node);
-
-      #if 0
-      qDebug() << "aaa e: " << n.nodeValue();
-      n.setNodeValue("no");
-      qDebug() << "xxx e: " << n.nodeValue();
-      #endif
-    }
-#endif
   } // The file does not exist, create dom doc
   else
   {
@@ -607,108 +587,19 @@ void MainWindow::backup_file()
 {
 }
 
+void parse_tes()
+{
+}
+
+
 // offset is card offset
 void MainWindow::fill_data(int offset)
 {
-  qDebug() << hex << "offset : " << offset;
-  size_t read_count=10;
-  QString result;
-#ifdef QT_FILE_IO
   const char *buf = qba_.constData();
-#endif
-
-#ifndef QT_FILE_IO
-  u8 buf[BUF_LEN]="";
-  fseek(fs_, offset, SEEK_SET);
-  read_count=fread(buf, 1, 1, fs_);
-#endif
-
-// point data
-    //QTextStream(&result) << buf[0];
-    u8 u8_data=0;
-    u16 u16_data=0;
-    memcpy(&u16_data, buf+offset-POINT_DIFF, 2);
-    result.sprintf("%d", u16_data);
-
-    point_->setText(result);
-
-#ifdef QT_FILE_IO
-#else
-    fseek(fs_, offset, SEEK_SET);
-    read_count=fread(buf, 1, 4, fs_);
-#endif
-
-// cash data
-    int u32_data=0;
-    memcpy(&u32_data, buf+offset-CASH_DIFF, 4);
-    //QTextStream(&result) << buf[0];
-    result.sprintf("%d", u32_data);
-
-    cash_->setText(result);
-
-
-#ifdef QT_FILE_IO
-#else
-    fseek(fs_, offset, SEEK_SET);
-    read_count=fread(buf, 1, 4, fs_);
-#endif
-
-// saving data
-    //offset+=4;
-    //QTextStream(&result) << buf[0];
-    memcpy(&u32_data, buf+offset-CASH_DIFF+0x4, 4);
-    result.sprintf("%d", u32_data);
-
-    saving_->setText(result);
-
-#ifdef QT_FILE_IO
-#else
-    fseek(fs_, offset, SEEK_SET);
-    read_count=fread(buf, 1, BUF_LEN, fs_);
-#endif
-
-// card data
-    //offset=0x4e38;
-    //offset=0x4e2c;
-  //qDebug() << "read_count: " << read_count;
-  const char *card_data=buf+offset;
-  qDebug() << hex << "card data offset: " << offset;
-  for (size_t i=0,j=0 ; i < 32 ; i+=4, ++j)
-  {
-    u32 u32_data=0;
-    memcpy(&u32_data, card_data+i, 4);
-    qDebug("card_data[%d]: %x", i, card_data[i]);
-    qDebug() << hex << "card u32 data: " << u32_data;
-    #if 0
-    qDebug("buf[%d]: %x", i+1, buf[i+1]);
-    qDebug("buf[%d]: %x", i+2, buf[i+2]);
-    qDebug("buf[%d]: %x", i+3, buf[i+3]);
-    #endif
-    // buf[i]-1 0 ~ sizeof(card_name)/sizeof(char*)
-    //u8 ch=card_data[i];
-    //if (buf[i]==0xffffffff)
-    if (u32_data==0xffffffff)
-    {
-      card_[j]->setCurrentIndex(0);
-    }
-    else if (0 <= (u32_data-1) && (u32_data-1) <= (sizeof(card_name)/sizeof(char*)-2) )
-         {
-           card_[j]->setCurrentIndex(u32_data);
-         }
-         else // unknow card data
-	 {
-           qDebug() << "unknow card data";
-           card_[j]->setCurrentIndex(sizeof(card_name)/sizeof(char*)-1);
-#if 0
-           card_[i]->addItem(tr("unknow card (%1 %2 %3 %4)")
-			     .arg((int)card_data[0], 0, 16)
-			     .arg((int)card_data[1], 0, 16)
-			     .arg((int)card_data[2], 0, 16)
-			     .arg((int)card_data[3], 0, 16) );
-#endif
-	 }
-  }
-
+  int len=qba_.size();
+  yy_scan_bytes(buf, len);
+  yylex();
+  return;
 }
 
 void MainWindow::save_as_slot()
@@ -865,9 +756,12 @@ void MainWindow::create_form_groupbox()
   formGroupBox->setLayout(layout);
   QString label_name; // card name utf8 encoding
 
+  big5_codec = QTextCodec::codecForName("big5");
+
   text_edit_ = new QTextEdit(this);
+  text_edit = text_edit_;
   layout->addRow(text_edit_);
-  text_edit_->append("text");
+  //text_edit_->append("text");
   //text_edit_->
   //text_edit_->setTextBackgroundColor(QColor(255, 0, 0, 127));
   text_edit_->setTextColor(QColor(255, 255, 255));

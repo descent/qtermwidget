@@ -236,6 +236,9 @@ int level=0;
 #include <cctype>
 #include <vector>
 
+#include <QtGui>
+
+
 using namespace std;
 
 // ¥Î¨Ó¬ö¿ý text attribute, 
@@ -371,8 +374,28 @@ for (int i=0; i < yyleng; ++i)
 #if 1  
   //print_attr();
   //printf("big5 char\n");
-  printf("%c", yytext[0]);
-  printf("%c", yytext[1]);
+  //char big5_char[]={0,0,0};
+  extern char big5_char[];
+
+  //printf("%c", yytext[0]);
+  //printf("%c\n", yytext[1]);
+
+
+
+  char h[2];
+  get_hex(yytext[0],h);
+  printf("hex 0x%c%c\n",h[0],h[1]);
+
+  get_hex(yytext[1],h);
+  printf("hex 0x%c%c\n",h[0],h[1]);
+
+  big5_char[0]=yytext[0];
+  big5_char[1]=yytext[1];
+  extern QTextEdit *text_edit;
+  extern QTextCodec *big5_codec;
+
+  QString cn = big5_codec->toUnicode(big5_char);
+  text_edit->append(cn);
 #endif
 }
 

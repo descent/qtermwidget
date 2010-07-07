@@ -19,7 +19,8 @@ FLEXSOURCES += tes.l
 
 
 # ref: http://www.qtcentre.org/threads/3557-Flex-Bison-and-qmake
-flex.commands = flex -o lex.yy.cpp ${QMAKE_FILE_IN}
+#flex.commands = flex --header-file=tes.h -o tes.cpp ${QMAKE_FILE_IN}
+flex.commands = flex --header-file=tes.h -o lex.yy.cpp ${QMAKE_FILE_IN}
 flex.input = FLEXSOURCES
 flex.output = lex.yy.cpp
 flex.variable_out = SOURCES

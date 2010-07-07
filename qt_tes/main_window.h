@@ -42,10 +42,10 @@ class MainWindow : public QMainWindow
     MainWindow();
     void create_form_groupbox();
     void backup_file();
+    QTextEdit *text_edit_;
 
 
   private:
-    QTextEdit *text_edit_;
     QFile qf_;
     //QComboBox *players_[MAX_PERSION], *persion_[MAX_PERSION];
     QComboBox *players_, *persion_;
@@ -68,6 +68,7 @@ class MainWindow : public QMainWindow
     void fill_data(int offset=0x4e10);
     int write_to_save_file(const QString &w_fn);
     void open_rich8_cfg();
+    void parse_tes();
 
   protected:
     void closeEvent ( QCloseEvent * event );
