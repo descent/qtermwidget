@@ -80,9 +80,9 @@ const u32 OFFSET[]={
                    };
 
 #ifdef Q_OS_WIN32
-const QString config_fn="\.rich8_edit_save.cfg";
+const QString config_fn="\.qt_tes.cfg";
 #else
-const QString config_fn="/.rich8_edit_save.cfg";
+const QString config_fn="/.qt_tes.cfg";
 #endif
 const int CARD_NUM=50;
 //const char *card_name[CARD_NUM]={"購地", "建屋"};
@@ -145,7 +145,7 @@ const char *persion_name[]={
 "錢夫人",
 "大老千",
 };
-char big5_char[]={0xa2, 0x65, 0};
+//char big5_char[]={0xa2, 0x65, 0};
 
 
 #define ADD_ACTION(menu, qa_obj, qa_name, slot) \
@@ -752,16 +752,16 @@ void MainWindow::create_form_groupbox()
 {
   QTextCodec *codec = QTextCodec::codecForName("utf8");
   formGroupBox = new QGroupBox(tr("Select a save file"));
-  QFormLayout *layout = new QFormLayout;
+  //QFormLayout *layout = new QFormLayout;
+  QBoxLayout *layout = new QBoxLayout(QBoxLayout::LeftToRight);
   formGroupBox->setLayout(layout);
-  QString label_name; // card name utf8 encoding
 
   big5_codec = QTextCodec::codecForName("big5");
-
   text_edit_ = new QTextEdit(this);
   text_edit = text_edit_;
-  layout->addRow(text_edit_);
-  //text_edit_->append("text");
+  //layout->addRow(text_edit_);
+  layout->addWidget(text_edit_);
+  text_edit_->append("text");
   //text_edit_->
   //text_edit_->setTextBackgroundColor(QColor(255, 0, 0, 127));
   text_edit_->setTextColor(QColor(255, 255, 255));

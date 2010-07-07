@@ -374,33 +374,46 @@ for (int i=0; i < yyleng; ++i)
 #if 1  
   //print_attr();
   //printf("big5 char\n");
-  //char big5_char[]={0,0,0};
-  extern char big5_char[];
+  //extern char big5_char[];
 
   //printf("%c", yytext[0]);
   //printf("%c\n", yytext[1]);
 
 
 
+#ifdef DEBUG_INPUT
   char h[2];
   get_hex(yytext[0],h);
   printf("hex 0x%c%c\n",h[0],h[1]);
 
   get_hex(yytext[1],h);
   printf("hex 0x%c%c\n",h[0],h[1]);
+#endif
 
+  char big5_char[]={0,0,0};
   big5_char[0]=yytext[0];
   big5_char[1]=yytext[1];
   extern QTextEdit *text_edit;
   extern QTextCodec *big5_codec;
 
   QString cn = big5_codec->toUnicode(big5_char);
-  text_edit->append(cn);
+  //text_edit->append(cn);
+  text_edit->insertPlainText(cn);
+  //text_edit->moveCursor(QTextCursor::Up);
 #endif
 }
 
-[\x20-\x7f] { /* 32 ~ 127 */
-  printf("%c", yytext[0]);
+[\x20-\x7f] { /* 32 ~ 127 seeable ASCII*/
+  char big5_char[]={0,0,0};
+  big5_char[0]=yytext[0];
+  big5_char[1]=yytext[1];
+  extern QTextEdit *text_edit;
+  extern QTextCodec *big5_codec;
+
+  QString cn = big5_codec->toUnicode(big5_char);
+  //text_edit->append(cn);
+  text_edit->insertPlainText(cn);
+  //printf("%c", yytext[0]);
 #if 0
 //printf("SEEABLE ASCII\n"); BEGIN 0;
   print_attr();
