@@ -19,9 +19,9 @@ FLEXSOURCES += tes.l
 
 
 # ref: http://www.qtcentre.org/threads/3557-Flex-Bison-and-qmake
-flex.commands = flex ${QMAKE_FILE_IN}
+flex.commands = flex -o lex.yy.cpp ${QMAKE_FILE_IN}
 flex.input = FLEXSOURCES
-flex.output = lex.yy.c
+flex.output = lex.yy.cpp
 flex.variable_out = SOURCES
 flex.name = flex
 QMAKE_EXTRA_COMPILERS += flex
@@ -44,6 +44,7 @@ QMAKE_EXTRA_COMPILERS += flex
 #TEMPLATE	= app
 #DESTDIR 	= .
 
+# flex library
 LIBS += -ll
 
 HEADERS = main_window.h
