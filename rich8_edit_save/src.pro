@@ -22,6 +22,14 @@ TARGET 	= rich8_edit_save
 #TEMPLATE	= app
 #DESTDIR 	= .
 
+# copy from qtdemo
+RESOURCES = rich8_edit_save.qrc
+win32:RC_FILE = rich8_edit_save.rc
+mac {
+ICON = qtdemo.icns
+QMAKE_INFO_PLIST = Info_mac.plist
+}
+
 HEADERS = main_window.h
 SOURCES	= main_window.cpp \
           main.cpp

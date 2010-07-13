@@ -156,7 +156,8 @@ const char *persion_name[]={
 
 //MainWindow::MainWindow():QMainWindow(),fs_(0), backup_(false)
 MainWindow::MainWindow():QMainWindow(),fs_(0)
-{
+{ 
+  setWindowIcon(QIcon(":/images/window_icon.png"));
   create_form_groupbox();
   open_rich8_cfg();
   persion_data_[0]= OFFSET[0];
