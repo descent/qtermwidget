@@ -599,6 +599,8 @@ void MainWindow::fill_data(int offset)
   int len=qba_.size();
   yy_scan_bytes(buf, len);
   yylex();
+  extern QString cn;
+  text_edit_->insertPlainText(cn);
   return;
 }
 

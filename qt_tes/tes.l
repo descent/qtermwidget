@@ -24,6 +24,8 @@ int get_hex(char c,char hex[])
   hex[0]=ascii[high];
   hex[1]=ascii[low];
 }
+
+
 #if 0
 http://www.chinalinuxpub.com/read.php?wid=99
 
@@ -240,10 +242,11 @@ int level=0;
 
 
 using namespace std;
+// ¿¿¿¿ text attribute, 
+// initial value : ¿¿¿¿, ¿¿¿¿¿
 
-// ¥Î¨Ó¬ö¿ý text attribute, 
-// initial value ¶Â©³¥Õ¦rµL¥ô¦óÄÝ©Ê
 
+QString cn;
 int fg=37, bg=40, attr=0; 
 
 inline void init_attr()
@@ -396,9 +399,11 @@ for (int i=0; i < yyleng; ++i)
   extern QTextEdit *text_edit;
   extern QTextCodec *big5_codec;
 
-  QString cn = big5_codec->toUnicode(big5_char);
+  //QString cn;
+  cn += big5_codec->toUnicode(big5_char);
+  //text_edit->document()->setPlainText(cn);
   //text_edit->append(cn);
-  text_edit->insertPlainText(cn);
+  //text_edit->insertPlainText(cn);
   //text_edit->moveCursor(QTextCursor::Up);
 #endif
 }
@@ -410,9 +415,10 @@ for (int i=0; i < yyleng; ++i)
   extern QTextEdit *text_edit;
   extern QTextCodec *big5_codec;
 
-  QString cn = big5_codec->toUnicode(big5_char);
+  //QString cn = big5_codec->toUnicode(big5_char);
+  QString cn = "a";
   //text_edit->append(cn);
-  text_edit->insertPlainText(cn);
+  //text_edit->insertPlainText(cn);
   //printf("%c", yytext[0]);
 #if 0
 //printf("SEEABLE ASCII\n"); BEGIN 0;
@@ -425,7 +431,7 @@ for (int i=0; i < yyleng; ++i)
 }
 
 [\x0d\x0a] { // \n
-    printf("\n");
+    //printf("\n");
 }
 
 [\x00-\x1f] { /* 00 ~ 31 */
