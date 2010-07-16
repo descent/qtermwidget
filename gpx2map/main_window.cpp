@@ -40,7 +40,6 @@
 #if 1
 #include <QMessageBox>
 #include <QComboBox>
-//#include <QPoint>
 #include <QLineEdit>
 #endif
 
@@ -53,97 +52,44 @@
 #include <cstdio>
 #include <cstdlib>
 
+#include <vector>
+
 #include <iostream>
 
 using namespace std;
 
 #include "main_window.h"
 
-//const u32 CARD_OFFSET_1P = 0x4e38;
-u32 CARD_OFFSET_1P = 0x4e2c;
-const u32 CASH_DIFF = 0x4e38-0x4e14; // cash, 4 bytes
-const u32 SAVING_DIFF = CASH_DIFF+0x4; // saving, 4 bytes
-const u32 POINT_DIFF = 0x4e38-0x4e10; // point, 2bytes
-
-const u32 PLAYER_DIFF = 0x5024-0x4e38;
-const u32 CARD_OFFSET_2P = CARD_OFFSET_1P + PLAYER_DIFF;
-const u32 CARD_OFFSET_3P = CARD_OFFSET_2P + PLAYER_DIFF;
-const u32 CARD_OFFSET_4P = CARD_OFFSET_3P + PLAYER_DIFF;
-
-const u32 OFFSET[]={
-	            0x4e20, // last stage, 2P
-                    0x4e2c,
-                    0x4e38,
-                   };
 
 #ifdef Q_OS_WIN32
 const QString config_fn="\.gpx2map.cfg";
 #else
 const QString config_fn="/.gpx2map.cfg";
 #endif
-const int CARD_NUM=50;
-//const char *card_name[CARD_NUM]={"購地", "建屋"};
-const char *card_name[]={
-"空白",  // 00 00 00 00, if ff ff ff ff use the field
-"購地", 
-"建屋", 
-"拆屋", 
-"交換", 
-"查封",  // 05 00 00 00
-"怪獸",
-"機車",
-"汽車",
-"遙控骰子",
-"烏龜",  // 0a 00 00 00
-"轉向",  // 0b
-"路障",  // 0c
-"停留", // 0d
-"機器娃娃", // 0e
-"冬眠", // 0f
-"地雷", // 0x10 00 00 00
-"定時炸彈", // 0x11 00 00 00
-"飛彈", // 0x12 00 00 00
-"核子飛彈", // 0x13 00 00 00
-"均貧", // 0x14 00 00 00
-"均富", // 0x15 00 00 00
-"黑", // 0x16 00 00 00
-"紅", // 0x17 00 00 00
-"嫁禍", // 0x18 00 00 00
-"搶奪", // 0x19 00 00 00
-"送神", // 0x1a 00 00 00
-"查稅", // 0x1b 00 00 00
-"陷害", // 0x1c 00 00 00
-"漲價", // 0x1d 00 00 00
-"天使", // 0x1e 00 00 00
-"換位", // 0x1f 00 00 00
-"竹蜻蜓", // 0x20 00 00 00
-"泡泡", // 0x21 00 00 00
-"路霸", // 0x22 00 00 00
-"封印", // 0x23 00 00 00
-"財神", // 0x24 00 00 00
-"窮神", // 0x25 00 00 00
-"衰神", // 0x26 00 00 00
-"福神", // 0x27 00 00 00
-"土地公", // 0x28 00 00 00
-"糊塗神", // 0x29 00 00 00
-"警察", // 0x2a 00 00 00
-"小偷", // 0x2b 00 00 00
-"野狗", // 0x2c 00 00 00
-"老千", // 0x2d 00 00 00
-"保鏢", // 0x2e 00 00 00
-"鑽石", // 0x2f 00 00 00
-"地王", // 0x30 00 00 00
-"隱形", // 0x31 00 00 00
-"未知", // 0x32 00 00 00, wrong data, this is not card data.
+
+const char *colors[]=
+{
+  "#E60000",
+  "#00E675",
+  "#0000A0", // Dark Blue 	
+  "#0000A0", // Dark Blue 	
+  "#0000A0", // Dark Blue 	
+  "#0000A0", // Dark Blue 	
+  "#0000A0", // Dark Blue 	
+  "#0000A0", // Dark Blue 	
+  "#0000A0", // Dark Blue 	
+  "#0000A0", // Dark Blue 	
+  "#0000A0", // Dark Blue 	
+  "#0000A0", // Dark Blue 	
+  "#0000A0", // Dark Blue 	
+  "#0000A0", // Dark Blue 	
+  "#0000A0", // Dark Blue 	
+  "#0000A0", // Dark Blue 	
+  "#0000A0", // Dark Blue 	
+  "#0000A0", // Dark Blue 	
+  "#0000A0", // Dark Blue 	
+  "#0000A0", // Dark Blue 	
 };
-
-const char *persion_name[]={
-"烏咪",
-"錢夫人",
-"大老千",
-};
-
-
 #define ADD_ACTION(menu, qa_obj, qa_name, slot) \
 { \
   qa_obj = new QAction(tr(qa_name), this); \
@@ -469,44 +415,89 @@ void MainWindow::open_file_slot()
   }
   
 
-  file_name_ = QFileDialog::getOpenFileName(this, tr("Open GPX"), dirname_);
-  if (file_name_.isNull()) return;
-  dirname_=file_name_.left(file_name_.lastIndexOf("/"));
-  basename_=file_name_.right(file_name_.size()-file_name_.lastIndexOf('/')-1);
+  //file_name_ = QFileDialog::getOpenFileName(this, tr("Open GPX"), dirname_);
+  QStringList fn_list;
+  fn_list = QFileDialog::getOpenFileNames(this, tr("Open GPX"), dirname_, "*.gpx");
 
-  qf_.setFileName(file_name_);
 
-  if (qf_.open(QIODevice::ReadOnly))
+  points_ = "";
+  for (int i=0 ; i < fn_list.length() ; ++i)
   {
-  }
-  else
-  {
+    file_name_=fn_list.at(i);
+    if (file_name_.isNull()) break;
 
-    // ref : Qt-4.6.2/examples/xml/dombookmarks/mainwindow.cpp
-    QMessageBox::warning(this, tr("rich8 save editor"),
+    dirname_=file_name_.left(file_name_.lastIndexOf("/"));
+    basename_=file_name_.right(file_name_.size()-file_name_.lastIndexOf('/')-1);
+
+    qf_.setFileName(file_name_);
+    if (!qf_.open(QIODevice::ReadOnly))
+    {
+      // ref : Qt-4.6.2/examples/xml/dombookmarks/mainwindow.cpp
+      QMessageBox::warning(this, tr("rich8 save editor"),
                              tr("Cannot read file %1:\n%2.")
                              .arg(file_name_)
                              .arg(qf_.errorString()));
-    return;
-  }
+      break;
+    }
 
-  QDomDocument doc("mydocument");
 
-  if (!doc.setContent(&qf_)) 
-  {
+    QDomDocument doc("mydocument");
+
+    if (!doc.setContent(&qf_)) 
+    {
+      qf_.close();
+      break;
+    }
     qf_.close();
-    return;
+
+    // print out the element names of all elements that are direct children
+    // of the outermost element.
+    QDomElement docElem = doc.documentElement();
+    cout << "root tagname: " << qPrintable(docElem.tagName()) << endl; // the node really is an element.
+
+    QDomNode n = docElem.firstChild();
+
+    #if 0
+    // produce the html code
+    t = 1; trk_info[t] = [];
+    trk_info[t]['name'] = '南港-萬芳醫院'; trk_info[t]['desc'] = ''; trk_info[t]['clickable'] = true;
+    trk_info[t]['color'] = '#E60000'; trk_info[t]['width'] = 3; trk_info[t]['opacity'] = 0.8;
+    trk_info[t]['outline_color'] = '#000000'; trk_info[t]['outline_width'] = 0; trk_info[t]['fill_color'] = '#E60000'; trk_info[t]['fill_opacity'] = 0;
+    trk_segments[t] = [];
+    #endif
+    //cout << "[";
+    //const char color[]="#E60000";
+    points_ += QString("t = %1; trk_info[t] = []; \
+    trk_info[t]['name'] = '%2'; trk_info[t]['desc'] = ''; trk_info[t]['clickable'] = true; \
+    trk_info[t]['color'] = '%3'; trk_info[t]['width'] = 3; trk_info[t]['opacity'] = 0.8; \
+    trk_info[t]['outline_color'] = '#000000'; trk_info[t]['outline_width'] = 0; trk_info[t]['fill_color'] = '#E60000'; trk_info[t]['fill_opacity'] = 0; \
+    trk_segments[t] = [];").arg(i+1).arg("route_name").arg(colors[i]);
+
+    points_ += "trk_segments[t].push({points:[";
+    search_all(n);
+    cout << "xxx" << endl;
+    points_ += QString("]}); \
+                \nGV_Draw_Track(t); \
+	        t = %1; GV_Add_Track_to_Tracklist({bullet:'- ',name:trk_info[t]['name'],desc:trk_info[t]['desc'],color:trk_info[t]['color'],number:t});\n").arg(i+1);
+#if 0
+    t = 1; GV_Add_Track_to_Tracklist({bullet:'- ',name:trk_info[t]['name'],desc:trk_info[t]['desc'],color:trk_info[t]['color'],number:t});
+    t = 2; GV_Add_Track_to_Tracklist({bullet:'- ',name:trk_info[t]['name'],desc:trk_info[t]['desc'],color:trk_info[t]['color'],number:t});
+
+#endif
+    //cout << "]" << endl;
+
   }
-  qf_.close();
 
-  // print out the element names of all elements that are direct children
-  // of the outermost element.
-  QDomElement docElem = doc.documentElement();
-  cout << "root tagname: " << qPrintable(docElem.tagName()) << endl; // the node really is an element.
 
-  QDomNode n = docElem.firstChild();
 
-  search_all(n);
+
+
+
+
+
+
+  //text_edit_->clear();
+  //text_edit_->insertPlainText(points_);
 
   e.setAttribute("path", dirname_);
   statusBar()->showMessage(tr("open"));
@@ -525,8 +516,11 @@ void MainWindow::search_all(QDomNode &n)
       {
         //qDebug() << e.attribute("lat");
         //qDebug() << e.attribute("lon");
-	text_edit_->insertPlainText(e.attribute("lat"));
-	text_edit_->insertPlainText(e.attribute("lon"));
+	points_ += ("[" + e.attribute("lat") + "," + e.attribute("lon") + "],");
+	//cout << "[" << qPrintable(e.attribute("lat")) << "," << qPrintable(e.attribute("lon")) << "]," << endl;
+
+	//text_edit_->insertPlainText(e.attribute("lat"));
+	//text_edit_->insertPlainText(e.attribute("lon"));
       }
 #if 0
 	 QDomNodeList nl=n.childNodes();
@@ -559,113 +553,6 @@ void MainWindow::search_all(QDomNode &n)
   return;
 }
 
-void MainWindow::backup_file()
-{
-}
-
-// offset is card offset
-void MainWindow::fill_data(int offset)
-{
-  qDebug() << hex << "offset : " << offset;
-  size_t read_count=10;
-  QString result;
-#ifdef QT_FILE_IO
-  const char *buf = qba_.constData();
-#endif
-
-#ifndef QT_FILE_IO
-  u8 buf[BUF_LEN]="";
-  fseek(fs_, offset, SEEK_SET);
-  read_count=fread(buf, 1, 1, fs_);
-#endif
-
-// point data
-    //QTextStream(&result) << buf[0];
-    u8 u8_data=0;
-    u16 u16_data=0;
-    memcpy(&u16_data, buf+offset-POINT_DIFF, 2);
-    result.sprintf("%d", u16_data);
-
-    point_->setText(result);
-
-#ifdef QT_FILE_IO
-#else
-    fseek(fs_, offset, SEEK_SET);
-    read_count=fread(buf, 1, 4, fs_);
-#endif
-
-// cash data
-    int u32_data=0;
-    memcpy(&u32_data, buf+offset-CASH_DIFF, 4);
-    //QTextStream(&result) << buf[0];
-    result.sprintf("%d", u32_data);
-
-    cash_->setText(result);
-
-
-#ifdef QT_FILE_IO
-#else
-    fseek(fs_, offset, SEEK_SET);
-    read_count=fread(buf, 1, 4, fs_);
-#endif
-
-// saving data
-    //offset+=4;
-    //QTextStream(&result) << buf[0];
-    memcpy(&u32_data, buf+offset-CASH_DIFF+0x4, 4);
-    result.sprintf("%d", u32_data);
-
-    saving_->setText(result);
-
-#ifdef QT_FILE_IO
-#else
-    fseek(fs_, offset, SEEK_SET);
-    read_count=fread(buf, 1, BUF_LEN, fs_);
-#endif
-
-// card data
-    //offset=0x4e38;
-    //offset=0x4e2c;
-  //qDebug() << "read_count: " << read_count;
-  const char *card_data=buf+offset;
-  qDebug() << hex << "card data offset: " << offset;
-  for (size_t i=0,j=0 ; i < 32 ; i+=4, ++j)
-  {
-    u32 u32_data=0;
-    memcpy(&u32_data, card_data+i, 4);
-    qDebug("card_data[%d]: %x", i, card_data[i]);
-    qDebug() << hex << "card u32 data: " << u32_data;
-    #if 0
-    qDebug("buf[%d]: %x", i+1, buf[i+1]);
-    qDebug("buf[%d]: %x", i+2, buf[i+2]);
-    qDebug("buf[%d]: %x", i+3, buf[i+3]);
-    #endif
-    // buf[i]-1 0 ~ sizeof(card_name)/sizeof(char*)
-    //u8 ch=card_data[i];
-    //if (buf[i]==0xffffffff)
-    if (u32_data==0xffffffff)
-    {
-      card_[j]->setCurrentIndex(0);
-    }
-    else if (0 <= (u32_data-1) && (u32_data-1) <= (sizeof(card_name)/sizeof(char*)-2) )
-         {
-           card_[j]->setCurrentIndex(u32_data);
-         }
-         else // unknow card data
-	 {
-           qDebug() << "unknow card data";
-           card_[j]->setCurrentIndex(sizeof(card_name)/sizeof(char*)-1);
-#if 0
-           card_[i]->addItem(tr("unknow card (%1 %2 %3 %4)")
-			     .arg((int)card_data[0], 0, 16)
-			     .arg((int)card_data[1], 0, 16)
-			     .arg((int)card_data[2], 0, 16)
-			     .arg((int)card_data[3], 0, 16) );
-#endif
-	 }
-  }
-
-}
 
 void MainWindow::save_as_slot()
 {
@@ -683,18 +570,31 @@ void MainWindow::save_as_slot()
 int MainWindow::write_to_save_file(const QString &w_fn)
 {
   QFile qf;
+  QFile template_file;
+
+  QString template_fn="template.html";
+  template_file.setFileName(template_fn);
+  if (!template_file.open(QIODevice::ReadOnly))
+  {
+    QMessageBox::warning(this, tr("gpx2map"),
+                             tr("Cannot open file %1:\n%2.")
+                             .arg(template_fn)
+                             .arg(template_file.errorString()));
+
+    return -1;
+  }
+
+  QByteArray template_data=template_file.readAll();
+  int pos=0;
+  pos=template_data.indexOf("@@");
+  qDebug() << "pos: " << pos;
+  template_data.replace(pos, 2, points_.toAscii());
+  template_file.close();
 
   qf.setFileName(w_fn);
   if (!qf.open(QIODevice::WriteOnly))
   {
-#if 0
-    QMessageBox msg_box;
-
-    msg_box.setText("Cannot open:" + file_name_ + " to write");
-    msg_box.exec();
-#endif
-
-    QMessageBox::warning(this, tr("rich8 save editor"),
+    QMessageBox::warning(this, tr("gpx2map"),
                              tr("Cannot save file %1:\n%2.")
                              .arg(w_fn)
                              .arg(qf.errorString()));
@@ -702,17 +602,13 @@ int MainWindow::write_to_save_file(const QString &w_fn)
 
     return -1;
   }
-  qDebug() << "qba_.size() : " << qba_.size();
-  int w_len=qf.write(qba_);
-  qDebug() << "w_len : " << w_len;
+  int w_len=qf.write(template_data);
   qf.close();
   return 0;
 }
 
 void MainWindow::save_file_slot()
 {
-  int offset = persion_data_[players_->currentIndex()];
-  
   if (backup_fn_.isEmpty())
     backup_fn_= file_name_ + ".bak";
 
@@ -721,95 +617,17 @@ void MainWindow::save_file_slot()
     qDebug() << "backup file: " << backup_fn_;
     write_to_save_file(backup_fn_);
   }
-  // point data
-  char *buf=qba_.data();
-  QString qstr=point_->text();
-  bool ok;
-  u16 u16_data = qstr.toInt(&ok, 10);
-  memcpy(buf+offset-POINT_DIFF, &u16_data, 2);
-  //qDebug() << "point_->text(): " << point_->text();
-  //qDebug() << "u16_data: " << u16_data;
-
-// cash data
-    qstr=cash_->text();
-    int u32_data = qstr.toInt(&ok, 10);
-    memcpy(buf+offset-CASH_DIFF, &u32_data, 4);
-
-    // saving data
-    qstr=saving_->text();
-    u32_data = qstr.toInt(&ok, 10);
-    memcpy(buf+offset-CASH_DIFF+0x4, &u32_data, 4);
-
-// card data
-  //offset=0x4e38;
-  //offset=0x4e2c; // 舞美拉 3p
-  //offset=CARD_OFFSET_1P;
-  buf=qba_.data() + offset;
-
-  qDebug() << hex << "write offset: " << offset;
-
-  // write card data
-  for (size_t j=0 ; j < MAX_CARD_NUM ; ++j)
-  {
-    //char write_buf[4]="";
-    //size_t w_len=0;
-    int idx=card_[j]->currentIndex();
-    if (idx==0)
-      buf[3] = buf[2] = buf[1] = buf[0]=0xff;
-    else
-      buf[0]=idx, buf[1] = buf[2] = buf[3] = 0;
-    buf+=4;
-  }
 
   // wirte to file
   write_to_save_file(file_name_);
 
-#ifdef QT_FILE_IO
-
-#else
-
-  if (fs_==0)
-    return;	   
-
-  fseek(fs_, offset, SEEK_SET);
-
-  for (size_t j=0 ; j < MAX_CARD_NUM ; ++j)
-  {
-    u8 write_buf[4]="";
-    size_t w_len=0;
-    int idx=card_[j]->currentIndex();
-    write_buf[0]=idx+1;
-    w_len=fwrite(write_buf, 1, 4, fs_);
-  }
-  fclose(fs_);
-  fs_=0;
-#endif
-  formGroupBox->setTitle(file_name_);
-  statusBar()->showMessage(tr("save"));
-  backup_fn_="";
 }
 
 void MainWindow::change_save_file_offset ( int index )
 {
-  //qDebug() << "MainWindow::change_save_file_offset";
-  //CARD_OFFSET_1P = OFFSET[index];
-  persion_data_[0]= OFFSET[index];
-  persion_data_[1]= persion_data_[0] + PLAYER_DIFF;
-  persion_data_[2]= persion_data_[1] + PLAYER_DIFF;
-  persion_data_[3]= persion_data_[2] + PLAYER_DIFF;
 
-  for (int i=0 ; i < 4; ++i)
-    qDebug() << hex << "persion_data_[" << i << "] : "  << persion_data_[i];
-
-  qDebug() << hex << "persion_data_[" << players_->currentIndex() << "] : "  << persion_data_[players_->currentIndex()];
-  fill_data(persion_data_[players_->currentIndex()]);
 }
 
-void MainWindow::change_player ( int index )
-{
-  qDebug() << "player: " << index;
-  fill_data(persion_data_[players_->currentIndex()]);
-}
 
 // copy from: 
 //      /usr/local/Trolltech/Qt-4.6.2/examples/layouts/basiclayouts/dialog.cpp
@@ -834,13 +652,6 @@ void MainWindow::change_font_slot()
   bool ok;
 
   qDebug("change_font_slot");
-  #if 0
-  QColor color = QColorDialog::getColor(Qt::black, this);
-  if (color.isValid())
-  {
-    (dynamic_cast<QTermWidget *> (tab_widget_->currentWidget()))->get_terminal_display()->set_background_color(color);
-  }
-  #endif
 
 
   static QFont terminal_font;

@@ -48,10 +48,7 @@ class MainWindow : public QMainWindow
 
   private:
     QFile qf_;
-    //QComboBox *players_[MAX_PERSION], *persion_[MAX_PERSION];
-    QComboBox *players_, *persion_;
-    QComboBox *card_[MAX_CARD_NUM];
-    QComboBox *save_file_offset_;
+    QString points_;
     QLineEdit *cash_, *saving_, *point_, *position_, *direction_;
     QGroupBox *formGroupBox;
     QMenu *file_menu_, *edit_menu_, *help_menu_;
@@ -77,7 +74,6 @@ class MainWindow : public QMainWindow
     void open_file_slot();
     void save_file_slot();
     void save_as_slot();
-    void change_player ( int index ) ;
     void change_save_file_offset ( int index );
 
 

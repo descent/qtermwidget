@@ -8,19 +8,6 @@ CONFIG += static
 QT += core gui xml
 TARGET 	= gpx2map
 
-#MOC_DIR 	= ./.moc
-
-#CONFIG(debug, debug|release) {
-#    OBJECTS_DIR = ./.objs_d
-#    TARGET 	= gpx2map_d
-##    LIBS 	+= -L.. ../libqtermwidget_d.a
-#} else {
-#    OBJECTS_DIR = ./.objs
-#    TARGET 	= gpx2map
-##    LIBS 	+= -L.. ../libqtermwidget.a
-#}
-#TEMPLATE	= app
-#DESTDIR 	= .
 
 # copy from qtdemo
 RESOURCES = gpx2map.qrc
