@@ -75,7 +75,7 @@ const u32 OFFSET[]={
                    };
 
 #ifdef Q_OS_WIN32
-const QString config_fn="\.rich8_edit_save.cfg";
+const QString config_fn="\\.rich8_edit_save.cfg";
 #else
 const QString config_fn="/.rich8_edit_save.cfg";
 #endif
