@@ -2,9 +2,11 @@
 #define MAIN_WINDOW_H
 
 #include <QMainWindow>
-//#include <QAction>
-//#include <QMenu>
-//#include <QMenu>
+#include <QString>
+
+#include <map>
+
+using namespace std;
 
 #if 1
 //QT_BEGIN_NAMESPACE
@@ -30,8 +32,12 @@ typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned int u32;
 
-const u8 MAX_CARD_NUM=8;
-const int MAX_PERSION=4;
+struct MapAttribute
+{
+  QString name, desc, clickable, width, opacity;
+  QString outline_color, outline_width, fill_color, fill_opacity;
+  int color; // a index, not color number
+};
 
 class MainWindow : public QMainWindow
 {
@@ -47,9 +53,14 @@ class MainWindow : public QMainWindow
 
 
   private:
+    QStringList fn_list_;
+    int previous_fn_index_;
+    QComboBox *color_combobox_;
+    map<int, MapAttribute> map_attr_;
     QFile qf_;
     QString points_;
-    QLineEdit *cash_, *saving_, *point_, *position_, *direction_;
+    QComboBox *files_;
+    QLineEdit *route_name_, *saving_, *point_, *position_, *direction_;
     QGroupBox *formGroupBox;
     QMenu *file_menu_, *edit_menu_, *help_menu_;
     QAction *open_file_, *save_file_, *save_as_;
@@ -58,10 +69,8 @@ class MainWindow : public QMainWindow
     QAction *change_font_, *backup_file_;
  
     QByteArray qba_;
-    FILE *fs_;
     QString dirname_, basename_, file_name_, backup_fn_;
     QDomDocument dom_doc_;
-    u32 persion_data_[4];
 
     void fill_data(int offset=0x4e10);
     int write_to_save_file(const QString &w_fn);
@@ -71,6 +80,7 @@ class MainWindow : public QMainWindow
     void closeEvent ( QCloseEvent * event );
 
   public slots:
+    void load_gpx_attr(int index);
     void open_file_slot();
     void save_file_slot();
     void save_as_slot();

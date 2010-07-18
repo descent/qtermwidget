@@ -52,7 +52,6 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include <vector>
 
 #include <iostream>
 
@@ -62,33 +61,25 @@ using namespace std;
 
 
 #ifdef Q_OS_WIN32
-const QString config_fn="\.gpx2map.cfg";
+const QString config_fn="\\.gpx2map.cfg";
 #else
 const QString config_fn="/.gpx2map.cfg";
 #endif
+
+
 
 const char *colors[]=
 {
   "#E60000",
   "#00E675",
   "#0000A0", // Dark Blue 	
-  "#0000A0", // Dark Blue 	
-  "#0000A0", // Dark Blue 	
-  "#0000A0", // Dark Blue 	
-  "#0000A0", // Dark Blue 	
-  "#0000A0", // Dark Blue 	
-  "#0000A0", // Dark Blue 	
-  "#0000A0", // Dark Blue 	
-  "#0000A0", // Dark Blue 	
-  "#0000A0", // Dark Blue 	
-  "#0000A0", // Dark Blue 	
-  "#0000A0", // Dark Blue 	
-  "#0000A0", // Dark Blue 	
-  "#0000A0", // Dark Blue 	
-  "#0000A0", // Dark Blue 	
-  "#0000A0", // Dark Blue 	
-  "#0000A0", // Dark Blue 	
-  "#0000A0", // Dark Blue 	
+  "#0000FF", // Light Blue	
+  "#FF0080", // Light Purple 	
+  "#800080", // Dark Purple 	
+  "#FFFF00", // Yellow	
+  "#00FF00", // Pastel Green	
+  "#FF00FF", // Pink	
+  "#FFFFFF", //White	
 };
 #define ADD_ACTION(menu, qa_obj, qa_name, slot) \
 { \
@@ -102,8 +93,7 @@ const char *colors[]=
   qa_obj->setShortcut(QKeySequence(keybind)); \
 }
 
-//MainWindow::MainWindow():QMainWindow(),fs_(0), backup_(false)
-MainWindow::MainWindow():QMainWindow(),fs_(0)
+MainWindow::MainWindow():QMainWindow(), previous_fn_index_(0)
 { 
   setWindowIcon(QIcon(":/images/window_icon.png"));
   qDebug() << "bb:";
@@ -116,14 +106,13 @@ MainWindow::MainWindow():QMainWindow(),fs_(0)
   bool ok=false;
   QFont f(e.attribute("family"), e.attribute("pointSize").toInt(&ok, 10), e.attribute("weight").toInt(&ok, 10));
   f.setStyle((QFont::Style)e.attribute("style").toInt(&ok, 10));
-  qDebug() << "ok: " << ok;
 
   setFont(f);
 
   setCentralWidget(formGroupBox);
   file_menu_ = menuBar()->addMenu(tr("&File"));
   ADD_ACTION(file_menu_, open_file_, "&Open File", open_file_slot )
-  ADD_ACTION(file_menu_, save_file_, "&Save", save_file_slot )
+  //ADD_ACTION(file_menu_, save_file_, "&Save", save_file_slot )
   ADD_ACTION(file_menu_, save_as_, "Save &As", save_as_slot )
 
   setting_menu_ = menuBar()->addMenu(tr("&Setting"));
@@ -144,21 +133,8 @@ MainWindow::MainWindow():QMainWindow(),fs_(0)
 
   QRect desktop_rect=QApplication::desktop()->screenGeometry();
 
-  qDebug() << desktop_rect; // for debug
-
-  //int w=desktop_rect.width()/2;
-  //int h=desktop_rect.height()/2;
-
-  //move(desktop_rect.center());
   QPoint p=QApplication::desktop()->screen()->rect().center() - centralWidget()->rect().center();
-  qDebug() << p;
   p = QApplication::desktop()->screen()->rect().center();
-  qDebug() << QApplication::desktop()->screen()->rect().center();
-  qDebug() << centralWidget()->rect().center();
-  qDebug() << centralWidget()->width();
-  qDebug() << centralWidget()->height();
-  qDebug() << width();
-  qDebug() << height();
   move(p.x()-width()/2, p.y()-height()/2);
 
   qDebug() << "QDir::currentPath(): " << QDir::currentPath();
@@ -186,7 +162,6 @@ void MainWindow::closeEvent ( QCloseEvent * event )
   if (file.open(QIODevice::WriteOnly | QIODevice::Text))
   {
     QTextStream out(&file);
-    qDebug() << "dom_doc_: " << dom_doc_.toString();
     out << dom_doc_;
     file.close();
   }
@@ -219,32 +194,8 @@ void MainWindow::open_rich8_cfg()
     file.close();
 
     QString xml_txt = dom_doc_.toString();
-    qDebug() << "xml_txt: " << xml_txt;
-    //QDomElement tag=dom_doc_.elementById("font");
-    //QDomNodeList tag=dom_doc_.elementsByTagName("font");
     QDomNodeList tag=dom_doc_.elementsByTagName("backup_file");
 
-#if 0
-    for (int i=0 ; i < tag.length() ; ++i)
-    {
-      QDomNode n=tag.at(i);
-
-      QDomElement e = tag.at(i).toElement(); // try to convert the node to an element.
-      qDebug() << "e: " << e.text();
-      qDebug() << "tag.at(i).nodeName(): " << tag.at(i).nodeName();
-
-      qDebug() << "childNodes().length(): " << n.childNodes().length();
-      QDomNode old_node=n.childNodes().at(0);
-      QDomText new_node=dom_doc_.createTextNode("no");
-      n.replaceChild(new_node, old_node);
-
-      #if 0
-      qDebug() << "aaa e: " << n.nodeValue();
-      n.setNodeValue("no");
-      qDebug() << "xxx e: " << n.nodeValue();
-      #endif
-    }
-#endif
   } // The file does not exist, create dom doc
   else
   {
@@ -257,25 +208,6 @@ void MainWindow::open_rich8_cfg()
     QDomText t = dom_doc_.createTextNode(cfg_fn_path);
     tag.appendChild(t);
 
-#if 0
-    tag = dom_doc_.createElement("ui_font_pointSize");
-    root.appendChild(tag);
-  
-    t = dom_doc_.createTextNode("ui_font_pointSize");
-    tag.appendChild(t);
-  
-    tag = dom_doc_.createElement("ui_font_weight");
-    root.appendChild(tag);
-  
-    t = dom_doc_.createTextNode("ui_font_weight");
-    tag.appendChild(t);
-
-    tag = dom_doc_.createElement("ui_font_style");
-    root.appendChild(tag);
-  
-    t = dom_doc_.createTextNode("ui_font_style");
-    tag.appendChild(t);
-#endif
     tag = dom_doc_.createElement("ui_font");
     root.appendChild(tag);
 
@@ -299,18 +231,6 @@ void MainWindow::open_rich8_cfg()
     t = dom_doc_.createTextNode(".");
     tag.appendChild(t);
   
-#if 0
-    QString xml = dom_doc_.toString();
-    qDebug() << "xml: " << xml;
-
-     QFile file(cfg_fn_path);
-     if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-         return;
-
-     QTextStream out(&file);
-     out << doc;
-  file.close();
-#endif
   }
 
 }
@@ -395,12 +315,10 @@ void MainWindow::about_slot()
   //msg+=" version";
 
    // ref : Qt-4.6.2/examples/xml/dombookmarks/mainwindow.cpp
-   QMessageBox::about(this, tr("About Rich8 Save File Editor"), msg);
+   QMessageBox::about(this, tr("About GPX2MAP"), msg);
 
 }
 
-const int BUF_LEN=32;
-//const  int offset=0x4e30+8; // 1P begin card offset
 
 #define QT_FILE_IO
 
@@ -416,78 +334,18 @@ void MainWindow::open_file_slot()
   
 
   //file_name_ = QFileDialog::getOpenFileName(this, tr("Open GPX"), dirname_);
-  QStringList fn_list;
-  fn_list = QFileDialog::getOpenFileNames(this, tr("Open GPX"), dirname_, "*.gpx");
+  fn_list_ = QFileDialog::getOpenFileNames(this, tr("Open GPX"), dirname_, "*.gpx");
 
+  files_->clear();
 
-  points_ = "";
-  for (int i=0 ; i < fn_list.length() ; ++i)
+  for (int i=0 ; i < fn_list_.length() ; ++i)
   {
-    file_name_=fn_list.at(i);
-    if (file_name_.isNull()) break;
-
-    dirname_=file_name_.left(file_name_.lastIndexOf("/"));
+    file_name_=fn_list_.at(i);
     basename_=file_name_.right(file_name_.size()-file_name_.lastIndexOf('/')-1);
-
-    qf_.setFileName(file_name_);
-    if (!qf_.open(QIODevice::ReadOnly))
-    {
-      // ref : Qt-4.6.2/examples/xml/dombookmarks/mainwindow.cpp
-      QMessageBox::warning(this, tr("rich8 save editor"),
-                             tr("Cannot read file %1:\n%2.")
-                             .arg(file_name_)
-                             .arg(qf_.errorString()));
-      break;
-    }
-
-
-    QDomDocument doc("mydocument");
-
-    if (!doc.setContent(&qf_)) 
-    {
-      qf_.close();
-      break;
-    }
-    qf_.close();
-
-    // print out the element names of all elements that are direct children
-    // of the outermost element.
-    QDomElement docElem = doc.documentElement();
-    cout << "root tagname: " << qPrintable(docElem.tagName()) << endl; // the node really is an element.
-
-    QDomNode n = docElem.firstChild();
-
-    #if 0
-    // produce the html code
-    t = 1; trk_info[t] = [];
-    trk_info[t]['name'] = '南港-萬芳醫院'; trk_info[t]['desc'] = ''; trk_info[t]['clickable'] = true;
-    trk_info[t]['color'] = '#E60000'; trk_info[t]['width'] = 3; trk_info[t]['opacity'] = 0.8;
-    trk_info[t]['outline_color'] = '#000000'; trk_info[t]['outline_width'] = 0; trk_info[t]['fill_color'] = '#E60000'; trk_info[t]['fill_opacity'] = 0;
-    trk_segments[t] = [];
-    #endif
-    //cout << "[";
-    //const char color[]="#E60000";
-    points_ += QString("t = %1; trk_info[t] = []; \
-    trk_info[t]['name'] = '%2'; trk_info[t]['desc'] = ''; trk_info[t]['clickable'] = true; \
-    trk_info[t]['color'] = '%3'; trk_info[t]['width'] = 3; trk_info[t]['opacity'] = 0.8; \
-    trk_info[t]['outline_color'] = '#000000'; trk_info[t]['outline_width'] = 0; trk_info[t]['fill_color'] = '#E60000'; trk_info[t]['fill_opacity'] = 0; \
-    trk_segments[t] = [];").arg(i+1).arg("route_name").arg(colors[i]);
-
-    points_ += "trk_segments[t].push({points:[";
-    search_all(n);
-    cout << "xxx" << endl;
-    points_ += QString("]}); \
-                \nGV_Draw_Track(t); \
-	        t = %1; GV_Add_Track_to_Tracklist({bullet:'- ',name:trk_info[t]['name'],desc:trk_info[t]['desc'],color:trk_info[t]['color'],number:t});\n").arg(i+1);
-#if 0
-    t = 1; GV_Add_Track_to_Tracklist({bullet:'- ',name:trk_info[t]['name'],desc:trk_info[t]['desc'],color:trk_info[t]['color'],number:t});
-    t = 2; GV_Add_Track_to_Tracklist({bullet:'- ',name:trk_info[t]['name'],desc:trk_info[t]['desc'],color:trk_info[t]['color'],number:t});
-
-#endif
-    //cout << "]" << endl;
-
+    files_->addItem(basename_);
   }
 
+  dirname_=file_name_.left(file_name_.lastIndexOf("/"));
 
 
 
@@ -496,9 +354,9 @@ void MainWindow::open_file_slot()
 
 
 
-  //text_edit_->clear();
-  //text_edit_->insertPlainText(points_);
 
+
+  text_edit_->clear();
   e.setAttribute("path", dirname_);
   statusBar()->showMessage(tr("open"));
 }
@@ -562,15 +420,99 @@ void MainWindow::save_as_slot()
   dirname_=file_name_.left(file_name_.lastIndexOf("/"));
   basename_=file_name_.right(file_name_.size() - file_name_.lastIndexOf('/')-1);
 
-#ifdef QT_FILE_IO
   save_file_slot();
-#endif // QT_FILE_IO
 }
 
 int MainWindow::write_to_save_file(const QString &w_fn)
 {
   QFile qf;
   QFile template_file;
+
+  // save map attribute, in the place should do the action,
+  // because files_ doesn't single the currentIndexChanged(int), files_ will not recode 
+  // the gpx attritube
+  MapAttribute map_attr;
+  map_attr.name=route_name_->text();
+  map_attr.color=color_combobox_->currentIndex();
+  //map_attr.color=color_combobox_->currentText();
+  map_attr_[previous_fn_index_]=map_attr;
+
+  points_ = "";
+
+  for (int i=0 ; i < fn_list_.length() ; ++i)
+  {
+    QString fn;
+    fn=fn_list_.at(i);
+    if (fn.isNull()) break;
+
+    qf_.setFileName(fn);
+    if (!qf_.open(QIODevice::ReadOnly))
+    {
+      // ref : Qt-4.6.2/examples/xml/dombookmarks/mainwindow.cpp
+      QMessageBox::warning(this, tr("gpx2map"),
+                             tr("Cannot read file %1:\n%2.")
+                             .arg(file_name_)
+                             .arg(qf_.errorString()));
+      break;
+    }
+
+
+    QDomDocument doc("mydocument");
+
+    if (!doc.setContent(&qf_)) 
+    {
+      qf_.close();
+      QMessageBox::warning(this, tr("gpx2map"), tr("%1 is not a gpx format file.").arg(file_name_));
+      break;
+    }
+    qf_.close();
+
+    // print out the element names of all elements that are direct children
+    // of the outermost element.
+    QDomElement docElem = doc.documentElement();
+    //cout << "root tagname: " << qPrintable(docElem.tagName()) << endl; // the node really is an element.
+
+    QDomNode n = docElem.firstChild();
+
+    #if 0
+    // produce the html code
+    t = 1; trk_info[t] = [];
+    trk_info[t]['name'] = '南港-萬芳醫院'; trk_info[t]['desc'] = ''; trk_info[t]['clickable'] = true;
+    trk_info[t]['color'] = '#E60000'; trk_info[t]['width'] = 3; trk_info[t]['opacity'] = 0.8;
+    trk_info[t]['outline_color'] = '#000000'; trk_info[t]['outline_width'] = 0; trk_info[t]['fill_color'] = '#E60000'; trk_info[t]['fill_opacity'] = 0;
+    trk_segments[t] = [];
+    #endif
+    //cout << "[";
+    //const char color[]="#E60000";
+    points_ += QString("t = %1; trk_info[t] = []; \
+    trk_info[t]['name'] = '%2'; trk_info[t]['desc'] = ''; trk_info[t]['clickable'] = true; \
+    trk_info[t]['color'] = '%3'; trk_info[t]['width'] = 3; trk_info[t]['opacity'] = 0.8; \
+    trk_info[t]['outline_color'] = '#000000'; trk_info[t]['outline_width'] = 0; trk_info[t]['fill_color'] = '#E60000'; trk_info[t]['fill_opacity'] = 0; \
+    trk_segments[t] = [];").arg(i+1).arg(map_attr_[i].name).arg(colors[map_attr_[i].color]);
+
+    points_ += "trk_segments[t].push({points:[";
+    search_all(n);
+    points_ += QString("]}); \
+                \nGV_Draw_Track(t); \
+	        t = %1; GV_Add_Track_to_Tracklist({bullet:'- ',name:trk_info[t]['name'],desc:trk_info[t]['desc'],color:trk_info[t]['color'],number:t});\n").arg(i+1);
+#if 0
+    t = 1; GV_Add_Track_to_Tracklist({bullet:'- ',name:trk_info[t]['name'],desc:trk_info[t]['desc'],color:trk_info[t]['color'],number:t});
+    t = 2; GV_Add_Track_to_Tracklist({bullet:'- ',name:trk_info[t]['name'],desc:trk_info[t]['desc'],color:trk_info[t]['color'],number:t});
+
+#endif
+    //cout << "]" << endl;
+
+  }
+
+
+
+
+
+  //text_edit_->insertPlainText(points_);
+
+
+
+
 
   QString template_fn="template.html";
   template_file.setFileName(template_fn);
@@ -591,6 +533,8 @@ int MainWindow::write_to_save_file(const QString &w_fn)
   template_data.replace(pos, 2, points_.toAscii());
   template_file.close();
 
+  text_edit_->insertPlainText(template_data);
+
   qf.setFileName(w_fn);
   if (!qf.open(QIODevice::WriteOnly))
   {
@@ -603,6 +547,13 @@ int MainWindow::write_to_save_file(const QString &w_fn)
     return -1;
   }
   int w_len=qf.write(template_data);
+
+#if 0
+  QMessageBox::warning(this, tr("gpx2map"),
+                             tr("write save file %1:\n.")
+                             .arg(w_fn));
+#endif
+
   qf.close();
   return 0;
 }
@@ -628,13 +579,80 @@ void MainWindow::change_save_file_offset ( int index )
 
 }
 
+void MainWindow::load_gpx_attr(int index)
+{
+  qDebug() << "index: " << index;
+  formGroupBox->setTitle(files_->currentText());
+  MapAttribute map_attr;
+
+  // save map attribute
+  map_attr.name=route_name_->text();
+  map_attr.color=color_combobox_->currentIndex();
+  //map_attr.color=color_combobox_->currentText();
+  map_attr_[previous_fn_index_]=map_attr;
+
+  // load current index map attribute
+
+  if (map_attr_.count(index))
+  {
+    route_name_->setText(map_attr_[index].name);
+    color_combobox_->setCurrentIndex(map_attr_[index].color);
+    //color_combobox_->setItemText(previous_fn_index_, map_attr_[index].color);
+  }
+  else
+  { // not yet set map attribute
+    route_name_->setText("");
+    color_combobox_->setCurrentIndex(0);
+    //color_combobox_->setCurrentText("#800080");
+    //color_combobox_->setItemText(0, "#E60000");
+  }
+
+  previous_fn_index_ = index;
+
+#if 0
+  if (index > map_attr_.length())
+  { // add new map_attr
+
+  }
+  else
+  { // edit old map_attr
+
+  }
+  MapAttribute map_attr;
+#endif
+
+}
 
 // copy from: 
 //      /usr/local/Trolltech/Qt-4.6.2/examples/layouts/basiclayouts/dialog.cpp
 void MainWindow::create_form_groupbox()
 {
-  QBoxLayout *layout = new QBoxLayout(QBoxLayout::LeftToRight);
-  formGroupBox = new QGroupBox(tr("Select a file"));
+  QBoxLayout *line_layout = new QBoxLayout(QBoxLayout::LeftToRight);
+  QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
+  QFormLayout *form_layout = new QFormLayout;
+
+  color_combobox_ = new QComboBox(this);
+  files_ = new QComboBox(this);
+  route_name_ = new QLineEdit(tr("route_name"), this);
+
+  //form_layout->addRow(new QLabel(tr("route name")), color_combobox_);
+  line_layout->addWidget(new QLabel(tr("File List: ")));
+  line_layout->addWidget(files_);
+
+  QObject::connect(files_, SIGNAL(currentIndexChanged ( int )), this, SLOT(load_gpx_attr(int)));
+
+  line_layout->addWidget(new QLabel(tr("Route Name: ")));
+  line_layout->addWidget(route_name_);
+  line_layout->addWidget(new QLabel(tr("Color: ")));
+  line_layout->addWidget(color_combobox_);
+  for (int i=0 ; i < sizeof(colors)/sizeof(char*) ; ++i)
+  {
+    color_combobox_->addItem(colors[i]);
+  }
+  layout->addLayout(line_layout);
+
+
+  formGroupBox = new QGroupBox(tr("Select GPX Files"));
 
   formGroupBox->setLayout(layout);
 
@@ -809,6 +827,8 @@ QTermWidget *MainWindow::create_qterm_widget()
   //console->get_terminal_display()->setFocus();
   return console;
 }
+
+
 
 void MainWindow::close_tab(int tab_index)
 {
