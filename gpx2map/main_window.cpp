@@ -338,23 +338,22 @@ void MainWindow::open_file_slot()
 
   files_->clear();
 
+  QString fn;
   for (int i=0 ; i < fn_list_.length() ; ++i)
   {
-    file_name_=fn_list_.at(i);
-    basename_=file_name_.right(file_name_.size()-file_name_.lastIndexOf('/')-1);
+    fn=fn_list_.at(i);
+    basename_=fn.right(fn.size()-fn.lastIndexOf('/')-1);
     files_->addItem(basename_);
+
+    MapAttribute map_attr;
+    map_attr.name=basename_;
+    map_attr.color=i%(sizeof(colors)/sizeof(char*));
+    map_attr_[i]=map_attr;
   }
+  route_name_->setText(map_attr_[0].name);
+  color_combobox_->setCurrentIndex(map_attr_[0].color);
 
-  dirname_=file_name_.left(file_name_.lastIndexOf("/"));
-
-
-
-
-
-
-
-
-
+  dirname_=fn.left(fn.lastIndexOf("/"));
 
   text_edit_->clear();
   e.setAttribute("path", dirname_);
@@ -370,7 +369,8 @@ void MainWindow::search_all(QDomNode &n)
     if(!e.isNull()) 
     {
       //cout << qPrintable(e.tagName()) << endl; // the node really is an element.
-      if (e.tagName()=="trkpt")
+      //if (e.tagName()=="trkpt")
+      if (e.tagName()=="rtept")
       {
         //qDebug() << e.attribute("lat");
         //qDebug() << e.attribute("lon");
@@ -585,6 +585,8 @@ void MainWindow::load_gpx_attr(int index)
   formGroupBox->setTitle(files_->currentText());
   MapAttribute map_attr;
 
+
+
   // save map attribute
   map_attr.name=route_name_->text();
   map_attr.color=color_combobox_->currentIndex();
@@ -592,7 +594,6 @@ void MainWindow::load_gpx_attr(int index)
   map_attr_[previous_fn_index_]=map_attr;
 
   // load current index map attribute
-
   if (map_attr_.count(index))
   {
     route_name_->setText(map_attr_[index].name);
@@ -606,6 +607,7 @@ void MainWindow::load_gpx_attr(int index)
     //color_combobox_->setCurrentText("#800080");
     //color_combobox_->setItemText(0, "#E60000");
   }
+
 
   previous_fn_index_ = index;
 
