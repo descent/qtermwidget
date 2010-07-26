@@ -1,0 +1,6 @@
+Qt Software Oslo, Sandakerveien 116, 0402 OSLO, Norway
+Qt Software Brisbane, Brisbane, Australia
+Qt Software Silicon Valley, Redwood City, CA 94065, USA
+Qt Software China, Beijing, China
+Qt Software Berlin, Berlin, Germany
+Qt Software Munich, Munich, Germany
