@@ -96,9 +96,8 @@ const char *colors[]=
 MainWindow::MainWindow():QMainWindow(), previous_fn_index_(0)
 { 
   setWindowIcon(QIcon(":/images/window_icon.png"));
-  qDebug() << "bb:";
+  open_cfg();
   create_form_groupbox();
-  open_rich8_cfg();
 
   // init font
   QDomNodeList nodes=dom_doc_.elementsByTagName("ui_font");
@@ -156,6 +155,23 @@ void MainWindow::closeEvent ( QCloseEvent * event )
     qDebug("n");
     e.setAttribute("option", "n");
   }
+
+  nodes=dom_doc_.elementsByTagName("google_map_key");
+  if (nodes.size()==0)
+  { // create a tag
+    qDebug() << "create google map key" << endl;
+    QDomElement root = dom_doc_.createElement("cfg");
+    QDomElement tag = dom_doc_.createElement("google_map_key");
+    root.appendChild(tag);
+    tag.setAttribute("k1", google_map_key_->text());
+  }
+  else
+  {
+    qDebug() << "modify google map key" << endl;
+    e = nodes.at(0).toElement(); // try to convert the node to an element.
+    e.setAttribute("k1", google_map_key_->text());
+  }
+
   QString cfg_fn_path=QDir::homePath() + config_fn;
 
   QFile file(cfg_fn_path);
@@ -180,7 +196,7 @@ void MainWindow::closeEvent ( QCloseEvent * event )
 #endif
 }
 
-void MainWindow::open_rich8_cfg()
+void MainWindow::open_cfg()
 {
   QString cfg_fn_path=QDir::homePath() + config_fn;
   qDebug() << "cfg_fn_path: " << cfg_fn_path;
@@ -196,10 +212,10 @@ void MainWindow::open_rich8_cfg()
     QString xml_txt = dom_doc_.toString();
     QDomNodeList tag=dom_doc_.elementsByTagName("backup_file");
 
-  } // The file does not exist, create dom doc
+  } 
   else
-  {
-    QDomElement root = dom_doc_.createElement("rich8_cfg");
+  { // The file does not exist, create dom doc
+    QDomElement root = dom_doc_.createElement("cfg");
     dom_doc_.appendChild(root);
   
     QDomElement tag = dom_doc_.createElement("cfg_path");
@@ -219,12 +235,22 @@ void MainWindow::open_rich8_cfg()
     t = dom_doc_.createTextNode("ui_font");
     tag.appendChild(t);
 
+    tag = dom_doc_.createElement("google_map_key");
+    root.appendChild(tag);
+
+    tag.setAttribute("k1", "");
+
 
     tag = dom_doc_.createElement("backup_file");
     root.appendChild(tag);
   
     t = dom_doc_.createTextNode("yes");
     tag.appendChild(t);
+
+
+
+
+
   
     tag = dom_doc_.createElement("open_file_path");
     root.appendChild(tag);
@@ -528,6 +554,13 @@ int MainWindow::write_to_save_file(const QString &w_fn)
 
   QByteArray template_data=template_file.readAll();
   int pos=0;
+
+  // replace ^^
+  pos=template_data.indexOf("^^");
+  template_data.replace(pos, 2, google_map_key_->text().toAscii());
+
+  // replace @@
+  pos=0;
   pos=template_data.indexOf("@@");
   qDebug() << "pos: " << pos;
   template_data.replace(pos, 2, points_.toAscii());
@@ -629,29 +662,54 @@ void MainWindow::load_gpx_attr(int index)
 //      /usr/local/Trolltech/Qt-4.6.2/examples/layouts/basiclayouts/dialog.cpp
 void MainWindow::create_form_groupbox()
 {
-  QBoxLayout *line_layout = new QBoxLayout(QBoxLayout::LeftToRight);
-  QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
+  //QBoxLayout *line_layout = new QBoxLayout(QBoxLayout::LeftToRight);
+  //QBoxLayout *line_layout = new QBoxLayout(QBoxLayout::TopToBottom);
+  //QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
+  QBoxLayout *layout = new QBoxLayout(QBoxLayout::LeftToRight);
   QFormLayout *form_layout = new QFormLayout;
 
   color_combobox_ = new QComboBox(this);
   files_ = new QComboBox(this);
-  route_name_ = new QLineEdit(tr("route_name"), this);
+  route_name_ = new QLineEdit(tr(""), this);
+  //google_map_key_ = new QLineEdit("ABQIAAAA8FCDZv0GdTV1ZXaxaBQ9pBTwGRZDfZiPh3bZ0KEOkhpQKe-QJxRFj7qYGmmzROwQb02-A0lCig73Fg", this);
+  QDomNodeList nodes=dom_doc_.elementsByTagName("google_map_key");
+  qDebug() << "nodes.size() : " << nodes.size();
+  QDomElement e = nodes.at(0).toElement(); // try to convert the node to an element.
+  qDebug() << "e.attribute(k1): " << e.attribute("k1");
+  google_map_key_ = new QLineEdit(e.attribute("k1"), this);
 
-  //form_layout->addRow(new QLabel(tr("route name")), color_combobox_);
+  form_layout->addRow(new QLabel(tr("file list")), files_);
+  form_layout->addRow(new QLabel(tr("route name")), route_name_);
+  form_layout->addRow(new QLabel(tr("route color")), color_combobox_);
+  form_layout->addRow(new QLabel(tr("google map key")), google_map_key_);
+  
+#if 0
   line_layout->addWidget(new QLabel(tr("File List: ")));
   line_layout->addWidget(files_);
-
-  QObject::connect(files_, SIGNAL(currentIndexChanged ( int )), this, SLOT(load_gpx_attr(int)));
 
   line_layout->addWidget(new QLabel(tr("Route Name: ")));
   line_layout->addWidget(route_name_);
   line_layout->addWidget(new QLabel(tr("Color: ")));
   line_layout->addWidget(color_combobox_);
+#endif
+
+  QObject::connect(files_, SIGNAL(currentIndexChanged ( int )), this, SLOT(load_gpx_attr(int)));
   for (int i=0 ; i < sizeof(colors)/sizeof(char*) ; ++i)
   {
     color_combobox_->addItem(colors[i]);
   }
-  layout->addLayout(line_layout);
+    //QString styleSheet = "QComboBox   {  color:  #0000A0;   }";
+    //color_combobox_->setStyleSheet(styleSheet);
+  #if 0
+  QAbstractItemView *v = color_combobox_->view();
+  for (int i=0 ; i < sizeof(colors)/sizeof(char*) ; ++i)
+  {
+    QWidget* w=v->indexWidget(i);
+  }
+  #endif
+
+  //layout->addLayout(line_layout);
+  layout->addLayout(form_layout);
 
 
   formGroupBox = new QGroupBox(tr("Select GPX Files"));
@@ -709,205 +767,3 @@ void MainWindow::change_font_slot()
   #endif
 }
 
-#if 0
-void MainWindow::switch_tab_slot(int tab_index)
-{
-  //qDebug("tab_index: %d", tab_index);
-  if (tab_index < tab_widget_->count())
-    tab_widget_->setCurrentIndex(tab_index);
-}
-
-
-
-void MainWindow::copy_slot()
-{
-  qDebug("copy_slot");
-  //(dynamic_cast<QTermWidget *>(centralWidget()))->copy_to_clipboard();
-  if (tab_widget_->currentWidget())
-    (dynamic_cast<QTermWidget *> (tab_widget_->currentWidget()))->copy_to_clipboard();
-}
-
-void MainWindow::paste_slot()
-{
-  qDebug("paste_slot");
-  //(dynamic_cast<QTermWidget *>(centralWidget()))->paste_from_clipboard();
-  if (tab_widget_->currentWidget())
-    (dynamic_cast<QTermWidget *> (tab_widget_->currentWidget()))->paste_from_clipboard();
-}
-
-void MainWindow::big5_enc()
-{
-  static QTextCodec *codec=QTextCodec::codecForName("big5");
-
-  if (codec==0)
-  {
-    qWarning() << "can not get big5 codec" << endl;
-    return;
-  }
-
-  qDebug("big5");
-  //(dynamic_cast<QTermWidget *>(centralWidget()))->set_codec(codec);
-  if (tab_widget_->currentWidget())
-    (dynamic_cast<QTermWidget *> (tab_widget_->currentWidget()))->set_codec(codec);
-
-  big5_enc_->setChecked(true);
-}
-void MainWindow::utf8_enc()
-{
-  qDebug("utf8");
-  static QTextCodec *codec=QTextCodec::codecForName("utf8");
-
-  if (codec==0)
-  {
-    qWarning() << "can not get utf8 codec" << endl;
-    return;
-  }
-
-  //(dynamic_cast<QTermWidget *>(centralWidget()))->set_codec(codec);
-  if (tab_widget_->currentWidget())
-    (dynamic_cast<QTermWidget *> (tab_widget_->currentWidget()))->set_codec(codec);
-  utf8_enc_->setChecked(true);
-}
-
-bool MainWindow::close()
-{
-  qDebug("MainWindow::close()");
-  if (tab_widget_->count()==1)
-    return QWidget::close();
-  else 
-  {
-    tab_widget_->removeTab(tab_widget_->currentIndex());
-    for (int i=0 ; i < tab_widget_->count() ; ++i)
-    {
-      char num_str[5];
-
-      sprintf(num_str, "%d", i+1);
-      tab_widget_->setTabText(i, num_str);
-    }
-  }
-
-
-  return false;
-}
-
-QTermWidget *MainWindow::create_qterm_widget()
-{
-  QTermWidget *console = new QTermWidget();
-
-  //QFont font = QApplication::font();
-  QFont font;
-  //QFont font = QFont("Monospace", 14);
-  //font.setFamily("Terminus");
-#ifdef Q_OS_WIN32
-  font.setFamily("Monospace");
-  font.setPointSize(14);
-  QSysInfo::windowsVersion ()  ;
-  QApplication::winVersion () ; // old version
-#elif defined(Q_OS_LINUX)
-  font.setFamily("Monospace");
-  font.setPointSize(14);
-#elif defined(Q_OS_MAC)
-  font.setFamily("Andale Mono");
-  font.setPointSize(18);
-  //QApplication::macVersion () ; // old verison
-  //QSysInfo::macVersion ()  ;
-  QSysInfo::MacintoshVersion;
-  
-#endif
-  //font.setFamily("efont");
-  //font.setPointSize(11);
-    
-  //QFont font = QFont("Osaka-等幅", 18);
-  console->setTerminalFont(font);
-  console->get_terminal_display()->set_background_color(QColor(57,57,57));
-  console->setScrollBarPosition(QTermWidget::ScrollBarRight);
-  //console->setFocus();
-  //QApplication::setActiveWindow(console);
-
-  QObject::connect(console, SIGNAL(finished()), this, SLOT(close()));
-  QObject::connect(console->get_terminal_display(), SIGNAL(switch_tab(int)), this, SLOT(switch_tab_slot(int)));
-  //console->get_terminal_display()->setFocus();
-  return console;
-}
-
-
-
-void MainWindow::close_tab(int tab_index)
-{
-  char tab_index_str[6];
-
-  qDebug("tab_index: %d", tab_index);
-  tab_widget_->removeTab(tab_index);
-
-  for (int i=tab_index ; i < tab_widget_->count() ; ++i)
-  {
-    sprintf(tab_index_str, "%d", i+1);
-    tab_widget_->setTabText(i, QString(tab_index_str));
-  }
-
-}
-
-void MainWindow::close_tab_slot()
-{
-  if (tab_widget_->count() != 1)
-    close_tab(tab_widget_->currentIndex());
-}
-
-
-#if 0
-void TerminalTabWidget::keyPressEvent(QKeyEvent* event)
-{
-  //if (event->modifiers() & Qt::MetaModifier) 
-  if (event->modifiers() & Qt::AltModifier) 
-  {
-    if (event->key() == Qt::Key_1)
-      qDebug("win+1");
-
-  }
-  qDebug("MainWindow::keyPressEvent");
-  
-
-  QTabWidget::keyPressEvent(event);
-}
-#endif
-
-void MainWindow::set_encode_slot()
-{
-#if 0
-  static int i = 0;
-
-	
-  if (i)
-  {
-    (dynamic_cast<QTermWidget *>(centralWidget()))->set_codec(QTextCodec::codecForName("big5"));
-    qDebug("big5");
-  }
-  else
-  {
-    qDebug("utf8");
-  }
-  ++i;
-#endif
-}
-
-void MainWindow::change_bg_color_slot()
-{
-  QColor color = QColorDialog::getColor(Qt::black, this);
-  if (color.isValid())
-  {
-  #ifdef CHANGE_CURRENT_QTERMWIDGET
-    (dynamic_cast<QTermWidget *> (tab_widget_->currentWidget()))->get_terminal_display()->set_background_color(color);
-  #else
-    for (int i=0 ; i < tab_widget_->count() ; ++i) {
-      (dynamic_cast<QTermWidget *> (tab_widget_->widget(i)))->get_terminal_display()->set_background_color(color);
-      (dynamic_cast<QTermWidget *> (tab_widget_->widget(i)))->get_terminal_display()->updateImage();
-    }
-  #endif
-  }
-}
-
-
-
-
-
-#endif

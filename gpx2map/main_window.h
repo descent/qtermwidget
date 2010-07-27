@@ -60,7 +60,7 @@ class MainWindow : public QMainWindow
     QFile qf_;
     QString points_;
     QComboBox *files_;
-    QLineEdit *route_name_, *saving_, *point_, *position_, *direction_;
+    QLineEdit *route_name_, *google_map_key_, *point_, *position_, *direction_;
     QGroupBox *formGroupBox;
     QMenu *file_menu_, *edit_menu_, *help_menu_;
     QAction *open_file_, *save_file_, *save_as_;
@@ -74,7 +74,7 @@ class MainWindow : public QMainWindow
 
     void fill_data(int offset=0x4e10);
     int write_to_save_file(const QString &w_fn);
-    void open_rich8_cfg();
+    void open_cfg();
 
   protected:
     void closeEvent ( QCloseEvent * event );
