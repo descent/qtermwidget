@@ -449,6 +449,40 @@ void MainWindow::save_as_slot()
   save_file_slot();
 }
 
+// calculate center point, but is minus coordinate,
+// the algorithm will calculate wrong center point.
+void MainWindow::get_points(const QDomDocument &dom_doc)
+{
+  //QDomNodeList node_list=dom_doc.elementsByTagName("trkpt");
+  QDomNodeList node_list=dom_doc.elementsByTagName("rtept");
+  static double bx=0.0, by=0.0, sx=200.0, sy=200.0;
+  QLocale c(QLocale::C);
+  for (int i=0 ; i < node_list.size() ; ++i)
+  {
+    //qDebug() << "node_list.at(i): " << node_list.at(i);
+    QDomElement e = node_list.at(i).toElement(); // try to convert the node to an element.
+    //QString points = ("[" + e.attribute("lat") + "," + e.attribute("lon") + "],");
+    double x = e.attribute("lat").toDouble();
+    double y = e.attribute("lon").toDouble();
+    {
+      if (x>bx) bx=x;
+      if (y>by) by=y;
+
+      if (x<sx) sx=x;
+      if (y<sy) sy=y;
+    }
+    //qDebug() << "points: " << points;
+    //qDebug() << "bx: " << bx << " by: " << by << "by: " << sx << "sy: " << sy;
+
+
+    //qDebug() << "x: " << x << " y: " << y ;
+    //cout << "x: " << x << " y: " << y << endl;
+  }
+  qDebug() << "bx: " << c.toString(bx,'f',10) << " by: " << c.toString(by,'f',10) << "by: " << c.toString(sx,'f',10) << "sy: " << c.toString(sy,'f',10);
+
+  center_point_= c.toString(((sx+bx)/2), 'f', 10) + ',' + c.toString(((sy+by)/2), 'f', 10) ;
+}
+
 int MainWindow::write_to_save_file(const QString &w_fn)
 {
   QFile qf;
@@ -517,6 +551,7 @@ int MainWindow::write_to_save_file(const QString &w_fn)
     trk_segments[t] = [];").arg(i+1).arg(map_attr_[i].name).arg(colors[map_attr_[i].color]);
 
     points_ += "trk_segments[t].push({points:[";
+    get_points(doc);
     search_all(n);
     points_ += QString("]}); \
                 \nGV_Draw_Track(t); \
@@ -554,6 +589,10 @@ int MainWindow::write_to_save_file(const QString &w_fn)
 
   QByteArray template_data=template_file.readAll();
   int pos=0;
+
+  // replace ##, center point
+  pos=template_data.indexOf("##");
+  template_data.replace(pos, 2, center_point_.toAscii());
 
   // replace ^^
   pos=template_data.indexOf("^^");

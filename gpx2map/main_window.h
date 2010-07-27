@@ -49,6 +49,7 @@ class MainWindow : public QMainWindow
     void backup_file();
     QTextEdit *text_edit_;
     void search_all(QDomNode &n);
+    void get_points(const QDomDocument &dom_doc);
 
 
 
@@ -59,6 +60,7 @@ class MainWindow : public QMainWindow
     map<int, MapAttribute> map_attr_;
     QFile qf_;
     QString points_;
+    QString center_point_;
     QComboBox *files_;
     QLineEdit *route_name_, *google_map_key_, *point_, *position_, *direction_;
     QGroupBox *formGroupBox;
