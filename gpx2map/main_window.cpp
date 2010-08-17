@@ -73,12 +73,12 @@ const char *colors[]=
   "#E60000",
   "#00E675",
   "#0000A0", // Dark Blue 	
-  "#0000FF", // Light Blue	
   "#FF0080", // Light Purple 	
-  "#800080", // Dark Purple 	
   "#FFFF00", // Yellow	
   "#00FF00", // Pastel Green	
+  "#0000FF", // Light Blue	
   "#FF00FF", // Pink	
+  "#800080", // Dark Purple 	
   "#FFFFFF", //White	
 };
 #define ADD_ACTION(menu, qa_obj, qa_name, slot) \
@@ -386,7 +386,32 @@ void MainWindow::open_file_slot()
   statusBar()->showMessage(tr("open"));
 }
 
-void MainWindow::search_all(QDomNode &n)
+QString MainWindow::check_gpx_type(const QDomDocument &dom_doc)
+{
+  QDomNodeList node_list=dom_doc.elementsByTagName("rtept"); // m241 format
+
+  if (node_list.size() == 0)
+  {
+    node_list=dom_doc.elementsByTagName("trkpt"); // general route format
+    if (node_list.size() == 0)
+    {
+      qDebug("type empty\n");
+      return ""; // can not support the GPX format
+    }
+    else
+    {
+      qDebug("type trkpt\n");
+      return "trkpt";
+    }
+  }
+  else
+  {
+    qDebug("type rtept\n");
+    return "rtept";
+  }
+}
+
+void MainWindow::search_all(QDomNode &n, const QString &tag_name)
 {
   while(!n.isNull()) 
   {
@@ -396,7 +421,8 @@ void MainWindow::search_all(QDomNode &n)
     {
       //cout << qPrintable(e.tagName()) << endl; // the node really is an element.
       //if (e.tagName()=="trkpt")
-      if (e.tagName()=="rtept")
+      //if (e.tagName()=="rtept")
+      if (e.tagName()==tag_name)
       {
         //qDebug() << e.attribute("lat");
         //qDebug() << e.attribute("lon");
@@ -414,7 +440,7 @@ void MainWindow::search_all(QDomNode &n)
          if(!node.isNull()) 
 	 {
            //cout << "!node.isNull()" << endl;
-           search_all(node);
+           search_all(node, tag_name);
 	 }
 	 else
 	 {
@@ -454,7 +480,10 @@ void MainWindow::save_as_slot()
 void MainWindow::get_points(const QDomDocument &dom_doc)
 {
   //QDomNodeList node_list=dom_doc.elementsByTagName("trkpt");
-  QDomNodeList node_list=dom_doc.elementsByTagName("rtept");
+  //QDomNodeList node_list=dom_doc.elementsByTagName("rtept");
+  //QString tag_name=check_gpx_type(dom_doc);
+
+  QDomNodeList node_list=dom_doc.elementsByTagName(check_gpx_type(dom_doc));
   static double bx=0.0, by=0.0, sx=200.0, sy=200.0;
   QLocale c(QLocale::C);
   for (int i=0 ; i < node_list.size() ; ++i)
@@ -552,7 +581,7 @@ int MainWindow::write_to_save_file(const QString &w_fn)
 
     points_ += "trk_segments[t].push({points:[";
     get_points(doc);
-    search_all(n);
+    search_all(n, check_gpx_type(doc));
     points_ += QString("]}); \
                 \nGV_Draw_Track(t); \
 	        t = %1; GV_Add_Track_to_Tracklist({bullet:'- ',name:trk_info[t]['name'],desc:trk_info[t]['desc'],color:trk_info[t]['color'],number:t});\n").arg(i+1);

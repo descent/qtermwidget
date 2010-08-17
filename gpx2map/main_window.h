@@ -48,8 +48,9 @@ class MainWindow : public QMainWindow
     void create_form_groupbox();
     void backup_file();
     QTextEdit *text_edit_;
-    void search_all(QDomNode &n);
+    void search_all(QDomNode &n, const QString &tag_name);
     void get_points(const QDomDocument &dom_doc);
+    QString check_gpx_type(const QDomDocument &dom_doc);
 
 
 
