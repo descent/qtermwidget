@@ -709,6 +709,7 @@ void MainWindow::create_form_groupbox()
 
   color_combobox_ = new QComboBox(this);
   files_ = new QComboBox(this);
+  track_list_ = new QComboBox(this);
   route_name_ = new QLineEdit(tr(""), this);
   //google_map_key_ = new QLineEdit("ABQIAAAA8FCDZv0GdTV1ZXaxaBQ9pBTwGRZDfZiPh3bZ0KEOkhpQKe-QJxRFj7qYGmmzROwQb02-A0lCig73Fg", this);
   QDomNodeList nodes=dom_doc_.elementsByTagName("google_map_key");
@@ -718,6 +719,8 @@ void MainWindow::create_form_groupbox()
   google_map_key_ = new QLineEdit(e.attribute("k1"), this);
 
   form_layout->addRow(new QLabel(tr("file list")), files_);
+  form_layout->addRow(new QLabel(tr("track list")), track_list_);
+
   form_layout->addRow(new QLabel(tr("route name")), route_name_);
   form_layout->addRow(new QLabel(tr("route color")), color_combobox_);
   form_layout->addRow(new QLabel(tr("google map key")), google_map_key_);

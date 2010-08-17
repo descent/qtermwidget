@@ -61,7 +61,7 @@ class MainWindow : public QMainWindow
     QFile qf_;
     QString points_;
     QString center_point_;
-    QComboBox *files_;
+    QComboBox *files_, *track_list_;
     QLineEdit *route_name_, *google_map_key_, *point_, *position_, *direction_;
     QGroupBox *formGroupBox;
     QMenu *file_menu_, *edit_menu_, *help_menu_;
