@@ -765,6 +765,8 @@ int MainWindow::write_to_save_file(const QString &w_fn)
     fn=fn_list_.at(i);
     if (fn.isNull()) break;
 
+    get_trk(fn_list_.at(i), i); 
+
     qf_.setFileName(fn);
     if (!qf_.open(QIODevice::ReadOnly))
     {
