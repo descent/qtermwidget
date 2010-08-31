@@ -410,6 +410,7 @@ void MainWindow::get_trk(const QString &fn, int index)
 
 	// current code, points will do many copy time.
         get_trk_points(n, tag_name, trk_attr.points);
+	//qDebug() << "trk_attr.points: " << trk_attr.points;
         cur_file_trk_attr->push_back(trk_attr);
       }
     }
@@ -744,6 +745,8 @@ int MainWindow::write_to_save_file(const QString &w_fn)
 
   points_ = "";
 
+  QString write_trk;
+
   for (int i=0 ; i < fn_list_.length() ; ++i)
   {
     QString fn;
@@ -790,6 +793,27 @@ int MainWindow::write_to_save_file(const QString &w_fn)
     #endif
     //cout << "[";
     //const char color[]="#E60000";
+    
+    FileTrkAttr* cur_file_trk_attr = file_trk_attr_[fn];
+
+    for (int i=0 ; i < cur_file_trk_attr->size() ; ++i)
+    {
+      MapAttribute trk_attr=(*cur_file_trk_attr)[i];
+
+      write_trk += QString("t = %1; trk_info[t] = []; \
+    trk_info[t]['name'] = '%2'; trk_info[t]['desc'] = ''; trk_info[t]['clickable'] = true; \
+    trk_info[t]['color'] = '%3'; trk_info[t]['width'] = 3; trk_info[t]['opacity'] = 0.8; \
+    trk_info[t]['outline_color'] = '#000000'; trk_info[t]['outline_width'] = 0; trk_info[t]['fill_color'] = '#E60000'; trk_info[t]['fill_opacity'] = 0; \
+    trk_segments[t] = [];").arg(i+1).arg(trk_attr.name).arg(colors[trk_attr.color]);
+	//qDebug() << "trk_attr.points: " << trk_attr.points;
+
+      write_trk += "trk_segments[t].push({points:[" + trk_attr.points + \
+	            QString("]}); \
+                \nGV_Draw_Track(t); \
+	        t = %1; GV_Add_Track_to_Tracklist({bullet:'- ',name:trk_info[t]['name'],desc:trk_info[t]['desc'],color:trk_info[t]['color'],number:t});\n").arg(i+1);
+
+    }
+
     points_ += QString("t = %1; trk_info[t] = []; \
     trk_info[t]['name'] = '%2'; trk_info[t]['desc'] = ''; trk_info[t]['clickable'] = true; \
     trk_info[t]['color'] = '%3'; trk_info[t]['width'] = 3; trk_info[t]['opacity'] = 0.8; \
@@ -850,7 +874,8 @@ int MainWindow::write_to_save_file(const QString &w_fn)
   pos=0;
   pos=template_data.indexOf("@@");
   qDebug() << "pos: " << pos;
-  template_data.replace(pos, 2, points_.toAscii());
+  //template_data.replace(pos, 2, points_.toAscii());
+  template_data.replace(pos, 2, write_trk.toAscii());
   template_file.close();
 
   text_edit_->insertPlainText(template_data);
