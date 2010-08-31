@@ -809,6 +809,10 @@ void MainWindow::change_save_file_offset ( int index )
 void MainWindow::load_gpx_attr(int index)
 {
   qDebug() << "index: " << index;
+  //qDebug() << "dirname_: " << dirname_;
+
+  get_trk(dirname_ + "/" + files_->itemText(index)); // get the first file all trk name
+
   formGroupBox->setTitle(files_->currentText());
   MapAttribute map_attr;
 
@@ -890,7 +894,6 @@ void MainWindow::create_form_groupbox()
   line_layout->addWidget(color_combobox_);
 #endif
 
-  QObject::connect(files_, SIGNAL(currentIndexChanged ( int )), this, SLOT(load_gpx_attr(int)));
   for (int i=0 ; i < sizeof(colors)/sizeof(char*) ; ++i)
   {
     color_combobox_->addItem(colors[i]);
@@ -915,6 +918,8 @@ void MainWindow::create_form_groupbox()
 
   text_edit_ = new QTextEdit(this);
   layout->addWidget(text_edit_);
+
+  QObject::connect(files_, SIGNAL(currentIndexChanged ( int )), this, SLOT(load_gpx_attr(int)));
 }
 
 
