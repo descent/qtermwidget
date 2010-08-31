@@ -511,6 +511,7 @@ void MainWindow::open_file_slot()
 
   //file_name_ = QFileDialog::getOpenFileName(this, tr("Open GPX"), dirname_);
   fn_list_ = QFileDialog::getOpenFileNames(this, tr("Open GPX"), dirname_, "*.gpx");
+  if (fn_list_.length()==0) return;
 
   QObject::disconnect(files_, SIGNAL(currentIndexChanged ( int )), this, SLOT(select_gpx_file(int)));
   files_->clear();
