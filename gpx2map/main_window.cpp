@@ -657,7 +657,8 @@ void MainWindow::get_trk_points(QDomNode &n, const QString &tag_name, QString &p
 	return;
       } // if (e.tagName()=="trkseg")
 
-      if (a_trk_seg==true && e.tagName()==tag_name)
+      // rtept has no trkseg tag
+      if (((a_trk_seg==true && e.tagName()==tag_name)) || e.tagName()=="rtept")
       {
         //qDebug() << "3"; 
 	points += ("[" + e.attribute("lat") + "," + e.attribute("lon") + "],");
