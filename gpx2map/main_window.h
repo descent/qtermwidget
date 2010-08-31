@@ -39,6 +39,8 @@ struct MapAttribute
   int color; // a index, not color number
 };
 
+typedef vector<MapAttribute> FileTrkAttr;
+
 class MainWindow : public QMainWindow
 {
   Q_OBJECT
@@ -52,7 +54,7 @@ class MainWindow : public QMainWindow
     void get_trk_info(QDomNode &n, const QString &tag_name);
     void get_points(const QDomDocument &dom_doc);
     QString check_gpx_type(const QDomDocument &dom_doc);
-    void get_trk(const QString &fn);
+    void get_trk(const QString &fn, int index);
 
 
 
@@ -76,6 +78,7 @@ class MainWindow : public QMainWindow
     QByteArray qba_;
     QString dirname_, basename_, file_name_, backup_fn_;
     QDomDocument dom_doc_;
+    vector<FileTrkAttr*> file_trk_attr_;
 
     void fill_data(int offset=0x4e10);
     int write_to_save_file(const QString &w_fn);
@@ -86,6 +89,7 @@ class MainWindow : public QMainWindow
 
   public slots:
     void load_gpx_attr(int index);
+    void select_gpx_file(int index);
     void open_file_slot();
     void save_file_slot();
     void save_as_slot();

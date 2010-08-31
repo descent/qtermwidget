@@ -350,10 +350,11 @@ void MainWindow::about_slot()
 
 #define QT_FILE_IO
 
-void MainWindow::get_trk(const QString &fn)
+void MainWindow::get_trk(const QString &fn, int index)
 {
   if (fn.isNull()) return;
 
+  setCursor(Qt::WaitCursor);
   QFile qf;
   qf.setFileName(fn);
   if (!qf.open(QIODevice::ReadOnly))
@@ -380,8 +381,13 @@ void MainWindow::get_trk(const QString &fn)
   if (tag_name=="trkpt")
     tag_name="trk";
 
+  QObject::disconnect(track_list_, SIGNAL(currentIndexChanged ( int )), this, SLOT(load_gpx_attr(int)));
   track_list_->clear();
   QDomNodeList node_list=doc.elementsByTagName(tag_name);
+
+  FileTrkAttr* cur_file_trk_attr = file_trk_attr_[index];
+
+  cur_file_trk_attr->clear();
   for (int i=0 ; i < node_list.size() ; ++i)
   {
     QDomNode n = node_list.at(i).firstChild();
@@ -394,9 +400,18 @@ void MainWindow::get_trk(const QString &fn)
       {
         //cout << qPrintable(e.tagName()) << endl; // the node really is an element.
         track_list_->addItem(e.text());
+	MapAttribute trk_attr;
+        trk_attr.name=e.text();
+        trk_attr.color=i%(sizeof(colors)/sizeof(char*));
+        cur_file_trk_attr->push_back(trk_attr);
       }
     }
   }
+
+  route_name_->setText((*cur_file_trk_attr)[0].name);
+  color_combobox_->setCurrentIndex((*cur_file_trk_attr)[0].color);
+  QObject::connect(track_list_, SIGNAL(currentIndexChanged ( int )), this, SLOT(load_gpx_attr(int)));
+  unsetCursor();
 
 #if 0
   QDomElement docElem = doc.documentElement();
@@ -491,6 +506,14 @@ void MainWindow::open_file_slot()
   files_->clear();
 
   QString fn;
+
+  int add_file_trk_attr_count=fn_list_.length()-file_trk_attr_.size();
+
+  for (int i=0 ; i < add_file_trk_attr_count ; ++i)
+  { // add new FileTrkAttr* to file_trk_attr_
+    file_trk_attr_.push_back(new FileTrkAttr);
+  }
+
   for (int i=0 ; i < fn_list_.length() ; ++i)
   {
     fn=fn_list_.at(i);
@@ -503,10 +526,8 @@ void MainWindow::open_file_slot()
     map_attr_[i]=map_attr;
   }
 
-  get_trk(fn_list_.at(0)); // get the first file all trk name
+  get_trk(fn_list_.at(0), 0); // get the first file all trk name
 
-  route_name_->setText(map_attr_[0].name);
-  color_combobox_->setCurrentIndex(map_attr_[0].color);
 
   dirname_=fn.left(fn.lastIndexOf("/"));
 
@@ -806,24 +827,49 @@ void MainWindow::change_save_file_offset ( int index )
 
 }
 
+void MainWindow::select_gpx_file(int index)
+{
+  get_trk(dirname_ + "/" + files_->itemText(index), index); // get the first file all trk name
+  formGroupBox->setTitle(files_->currentText());
+}
+
 void MainWindow::load_gpx_attr(int index)
 {
-  qDebug() << "index: " << index;
-  //qDebug() << "dirname_: " << dirname_;
+  //qDebug() << "index: " << index;
+  //qDebug() << "files_->currentIndex(): " << files_->currentIndex();
+  //qDebug() << "file_trk_attr_.size(): " << file_trk_attr_.size();
+  if (index < 0)
+    return;
 
-  get_trk(dirname_ + "/" + files_->itemText(index)); // get the first file all trk name
+  FileTrkAttr* cur_file_trk_attr = file_trk_attr_[files_->currentIndex()];
+  //qDebug() << "cur_file_trk_attr->size(): " << cur_file_trk_attr->size();
+  //qDebug() << "cur_file_trk_attr:" << cur_file_trk_attr;
 
-  formGroupBox->setTitle(files_->currentText());
-  MapAttribute map_attr;
+  //get_trk(dirname_ + "/" + files_->itemText(index), index); // get the first file all trk name
+
+  //MapAttribute map_attr;
 
 
-
+#if 0
   // save map attribute
-  map_attr.name=route_name_->text();
-  map_attr.color=color_combobox_->currentIndex();
-  //map_attr.color=color_combobox_->currentText();
-  map_attr_[previous_fn_index_]=map_attr;
+  //map_attr.name=route_name_->text();
+  (*cur_file_trk_attr)[index].name = route_name_->text();
 
+  //map_attr.color=color_combobox_->currentIndex();
+  (*cur_file_trk_attr)[index].color = color_combobox_->currentIndex();
+#else
+
+  //qDebug() << (*cur_file_trk_attr)[index].name;
+  MapAttribute trk_attr = cur_file_trk_attr->at(index);
+
+  //qDebug() << "(*cur_file_trk_attr)[index].name:" << (*cur_file_trk_attr)[index].name;
+  route_name_->setText((*cur_file_trk_attr)[index].name);
+  color_combobox_->setCurrentIndex((*cur_file_trk_attr)[index].color);
+#endif
+  //map_attr.color=color_combobox_->currentText();
+  //map_attr_[previous_fn_index_]=map_attr;
+
+#if 0
   // load current index map attribute
   if (map_attr_.count(index))
   {
@@ -838,7 +884,7 @@ void MainWindow::load_gpx_attr(int index)
     //color_combobox_->setCurrentText("#800080");
     //color_combobox_->setItemText(0, "#E60000");
   }
-
+#endif
 
   previous_fn_index_ = index;
 
@@ -869,6 +915,7 @@ void MainWindow::create_form_groupbox()
   color_combobox_ = new QComboBox(this);
   files_ = new QComboBox(this);
   track_list_ = new QComboBox(this);
+  track_list_->setEditable(true);
   route_name_ = new QLineEdit(tr(""), this);
   //google_map_key_ = new QLineEdit("ABQIAAAA8FCDZv0GdTV1ZXaxaBQ9pBTwGRZDfZiPh3bZ0KEOkhpQKe-QJxRFj7qYGmmzROwQb02-A0lCig73Fg", this);
   QDomNodeList nodes=dom_doc_.elementsByTagName("google_map_key");
@@ -919,7 +966,8 @@ void MainWindow::create_form_groupbox()
   text_edit_ = new QTextEdit(this);
   layout->addWidget(text_edit_);
 
-  QObject::connect(files_, SIGNAL(currentIndexChanged ( int )), this, SLOT(load_gpx_attr(int)));
+  QObject::connect(files_, SIGNAL(currentIndexChanged ( int )), this, SLOT(select_gpx_file(int)));
+  QObject::connect(track_list_, SIGNAL(currentIndexChanged ( int )), this, SLOT(load_gpx_attr(int)));
 }
 
 
