@@ -512,6 +512,7 @@ void MainWindow::open_file_slot()
   //file_name_ = QFileDialog::getOpenFileName(this, tr("Open GPX"), dirname_);
   fn_list_ = QFileDialog::getOpenFileNames(this, tr("Open GPX"), dirname_, "*.gpx");
 
+  QObject::disconnect(files_, SIGNAL(currentIndexChanged ( int )), this, SLOT(select_gpx_file(int)));
   files_->clear();
 
   QString fn;
@@ -539,6 +540,7 @@ void MainWindow::open_file_slot()
     map_attr.color=i%(sizeof(colors)/sizeof(char*));
     map_attr_[i]=map_attr;
   }
+  QObject::connect(files_, SIGNAL(currentIndexChanged ( int )), this, SLOT(select_gpx_file(int)));
 
   get_trk(fn_list_.at(0), 0); // get the first file all trk name
 
