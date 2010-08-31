@@ -49,8 +49,10 @@ class MainWindow : public QMainWindow
     void backup_file();
     QTextEdit *text_edit_;
     void search_all(QDomNode &n, const QString &tag_name);
+    void get_trk_info(QDomNode &n, const QString &tag_name);
     void get_points(const QDomDocument &dom_doc);
     QString check_gpx_type(const QDomDocument &dom_doc);
+    void get_trk(const QString &fn);
 
 
 

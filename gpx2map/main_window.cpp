@@ -43,6 +43,8 @@
 #include <QLineEdit>
 #endif
 
+#include <unistd.h>
+
 
 #include <QtGlobal> // for qVersion()
 #include <QtDebug> // for qDebug()
@@ -348,6 +350,130 @@ void MainWindow::about_slot()
 
 #define QT_FILE_IO
 
+void MainWindow::get_trk(const QString &fn)
+{
+  if (fn.isNull()) return;
+
+  QFile qf;
+  qf.setFileName(fn);
+  if (!qf.open(QIODevice::ReadOnly))
+  {
+    // ref : Qt-4.6.2/examples/xml/dombookmarks/mainwindow.cpp
+    QMessageBox::warning(this, tr("gpx2map"),
+                               tr("Cannot read file %1:\n%2.")
+                               .arg(fn)
+                               .arg(qf.errorString()));
+    return;
+  }
+  QDomDocument doc("gpx_file");
+  if (!doc.setContent(&qf)) 
+  {
+    qf.close();
+    QMessageBox::warning(this, tr("gpx2map"), tr("%1 is not a gpx format file.").arg(file_name_));
+    return;
+  }
+  qf.close();
+
+  QString tag_name=check_gpx_type(doc);
+  if (tag_name=="rtept")
+    tag_name="rte";
+  if (tag_name=="trkpt")
+    tag_name="trk";
+
+  track_list_->clear();
+  QDomNodeList node_list=doc.elementsByTagName(tag_name);
+  for (int i=0 ; i < node_list.size() ; ++i)
+  {
+    QDomNode n = node_list.at(i).firstChild();
+    //QDomNode node = e.firstChild();
+
+    if(!n.isNull()) 
+    {
+      QDomElement e = n.toElement(); // try to convert the node to an element.
+      if(!e.isNull()) 
+      {
+        //cout << qPrintable(e.tagName()) << endl; // the node really is an element.
+        track_list_->addItem(e.text());
+      }
+    }
+  }
+
+#if 0
+  QDomElement docElem = doc.documentElement();
+  QDomNode n = docElem.firstChild();
+
+  get_trk_info(n, tag_name);
+#endif
+
+}
+
+void MainWindow::get_trk_info(QDomNode &n, const QString &tag_name)
+{
+  while(!n.isNull()) 
+  {
+    //cout << "aaa" << endl;
+    QDomElement e = n.toElement(); // try to convert the node to an element.
+    if(!e.isNull()) 
+    {
+#if 1
+      if ( (e.tagName()=="trk") 
+		      || (e.tagName()=="name") || 
+		      //(e.tagName()=="desc") || 
+		      (e.tagName()=="trkseg") ) 
+      {
+        //cout << qPrintable(e.tagName()) << endl; // the node really is an element.
+        //sleep(2);
+      }
+      if (e.tagName()=="name")
+      {
+        //cout << qPrintable(e.text()) << endl; // the node really is an element.
+        track_list_->addItem(e.text());
+      }
+
+
+#endif
+      //cout << qPrintable(e.tagName()) << endl; // the node really is an element.
+      //sleep(2);
+
+#if 0
+      //if (e.tagName()=="rtept")
+      if (e.tagName()==tag_name)
+      {
+        //qDebug() << e.attribute("lat");
+        //qDebug() << e.attribute("lon");
+	points_ += ("[" + e.attribute("lat") + "," + e.attribute("lon") + "],");
+	//cout << "[" << qPrintable(e.attribute("lat")) << "," << qPrintable(e.attribute("lon")) << "]," << endl;
+
+	//text_edit_->insertPlainText(e.attribute("lat"));
+	//text_edit_->insertPlainText(e.attribute("lon"));
+      }
+#endif
+         QDomNode node = e.firstChild();
+         if(!node.isNull()) 
+	 {
+           //cout << "!node.isNull()" << endl;
+           get_trk_info(node, tag_name);
+	 }
+	 else
+	 {
+           //cout << "node.isNull()" << endl;
+           //return;
+	 }
+     }
+     else
+     {
+       //cout << "e.isNull()" << endl;
+       return;
+     }
+
+
+     //cout << "n.nextSibling()" << endl;
+     n = n.nextSibling();
+     //n = n.firstChild();
+  }
+  return;
+}
+
 void MainWindow::open_file_slot()
 {
   QDomNodeList nodes=dom_doc_.elementsByTagName("open_file_path");
@@ -376,6 +502,9 @@ void MainWindow::open_file_slot()
     map_attr.color=i%(sizeof(colors)/sizeof(char*));
     map_attr_[i]=map_attr;
   }
+
+  get_trk(fn_list_.at(0)); // get the first file all trk name
+
   route_name_->setText(map_attr_[0].name);
   color_combobox_->setCurrentIndex(map_attr_[0].color);
 
@@ -395,18 +524,15 @@ QString MainWindow::check_gpx_type(const QDomDocument &dom_doc)
     node_list=dom_doc.elementsByTagName("trkpt"); // general route format
     if (node_list.size() == 0)
     {
-      qDebug("type empty\n");
       return ""; // can not support the GPX format
     }
     else
     {
-      qDebug("type trkpt\n");
       return "trkpt";
     }
   }
   else
   {
-    qDebug("type rtept\n");
     return "rtept";
   }
 }
