@@ -81,8 +81,8 @@ class MainWindow : public QMainWindow
     QByteArray qba_;
     QString dirname_, basename_, file_name_, backup_fn_;
     QDomDocument dom_doc_;
-    vector<FileTrkAttr*> file_trk_attr_;
-    //map<QString, FileTrkAttr*> file_trk_attr_;
+    //vector<FileTrkAttr*> file_trk_attr_;
+    map<QString, FileTrkAttr*> file_trk_attr_;
 
     void fill_data(int offset=0x4e10);
     int write_to_save_file(const QString &w_fn);

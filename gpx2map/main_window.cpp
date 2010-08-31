@@ -185,7 +185,9 @@ void MainWindow::closeEvent ( QCloseEvent * event )
   }
 
 
+
   event->accept();
+
 
 #if 0
   if (maybeSave()) {
@@ -386,7 +388,7 @@ void MainWindow::get_trk(const QString &fn, int index)
   track_list_->clear();
   QDomNodeList node_list=doc.elementsByTagName(trk_name);
 
-  FileTrkAttr* cur_file_trk_attr = file_trk_attr_[index];
+  FileTrkAttr* cur_file_trk_attr = file_trk_attr_[fn];
 
   cur_file_trk_attr->clear();
   for (int i=0 ; i < node_list.size() ; ++i)
@@ -513,16 +515,21 @@ void MainWindow::open_file_slot()
 
   QString fn;
 
+#if 0
   int add_file_trk_attr_count=fn_list_.length()-file_trk_attr_.size();
 
   for (int i=0 ; i < add_file_trk_attr_count ; ++i)
   { // add new FileTrkAttr* to file_trk_attr_
     file_trk_attr_.push_back(new FileTrkAttr);
   }
+#endif
+
+  file_trk_attr_.clear();
 
   for (int i=0 ; i < fn_list_.length() ; ++i)
   {
     fn=fn_list_.at(i);
+    file_trk_attr_[fn]=new FileTrkAttr;
     basename_=fn.right(fn.size()-fn.lastIndexOf('/')-1);
     files_->addItem(basename_);
 
@@ -906,7 +913,7 @@ void MainWindow::load_gpx_attr(int index)
   if (index < 0)
     return;
 
-  FileTrkAttr* cur_file_trk_attr = file_trk_attr_[files_->currentIndex()];
+  FileTrkAttr* cur_file_trk_attr = file_trk_attr_[dirname_ + "/" + files_->currentText()];
   //qDebug() << "cur_file_trk_attr->size(): " << cur_file_trk_attr->size();
   //qDebug() << "cur_file_trk_attr:" << cur_file_trk_attr;
 
