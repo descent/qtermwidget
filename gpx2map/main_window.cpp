@@ -832,20 +832,11 @@ int MainWindow::write_to_save_file(const QString &w_fn)
 
     }
 
-    points_ += QString("t = %1; trk_info[t] = []; \
-    trk_info[t]['name'] = '%2'; trk_info[t]['desc'] = ''; trk_info[t]['clickable'] = true; \
-    trk_info[t]['color'] = '%3'; trk_info[t]['width'] = 3; trk_info[t]['opacity'] = 0.8; \
-    trk_info[t]['outline_color'] = '#000000'; trk_info[t]['outline_width'] = 0; trk_info[t]['fill_color'] = '#E60000'; trk_info[t]['fill_opacity'] = 0; \
-    trk_segments[t] = [];").arg(i+1).arg(map_attr_[i].name).arg(colors[map_attr_[i].color]);
-
-    points_ += "trk_segments[t].push({points:[";
 
     get_points(doc);
 
-    search_all(n, check_gpx_type(doc));
-    points_ += QString("]}); \
-                \nGV_Draw_Track(t); \
-	        t = %1; GV_Add_Track_to_Tracklist({bullet:'- ',name:trk_info[t]['name'],desc:trk_info[t]['desc'],color:trk_info[t]['color'],number:t});\n").arg(i+1);
+    //search_all(n, check_gpx_type(doc));
+
 #if 0
     t = 1; GV_Add_Track_to_Tracklist({bullet:'- ',name:trk_info[t]['name'],desc:trk_info[t]['desc'],color:trk_info[t]['color'],number:t});
     t = 2; GV_Add_Track_to_Tracklist({bullet:'- ',name:trk_info[t]['name'],desc:trk_info[t]['desc'],color:trk_info[t]['color'],number:t});
@@ -854,16 +845,6 @@ int MainWindow::write_to_save_file(const QString &w_fn)
     //cout << "]" << endl;
 
   }
-
-
-
-
-
-  //text_edit_->insertPlainText(points_);
-
-
-
-
 
   QString template_fn="template.html";
   template_file.setFileName(template_fn);
