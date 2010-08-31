@@ -388,7 +388,14 @@ void MainWindow::get_trk(const QString &fn, int index)
   track_list_->clear();
   QDomNodeList node_list=doc.elementsByTagName(trk_name);
 
-  FileTrkAttr* cur_file_trk_attr = file_trk_attr_[fn];
+  FileTrkAttr* cur_file_trk_attr = 0;
+  if (file_trk_attr_.count(fn))
+  {
+    cur_file_trk_attr = file_trk_attr_[fn];
+  }
+  else
+  {
+  }
 
   cur_file_trk_attr->clear();
   for (int i=0 ; i < node_list.size() ; ++i)
@@ -798,7 +805,10 @@ int MainWindow::write_to_save_file(const QString &w_fn)
     //cout << "[";
     //const char color[]="#E60000";
     
-    FileTrkAttr* cur_file_trk_attr = file_trk_attr_[fn];
+    FileTrkAttr* cur_file_trk_attr = 0;
+
+    if (file_trk_attr_.count(fn))
+      cur_file_trk_attr = file_trk_attr_[fn];
 
     for (int i=0 ; i < cur_file_trk_attr->size() ; ++i)
     {
