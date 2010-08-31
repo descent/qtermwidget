@@ -37,9 +37,11 @@ struct MapAttribute
   QString name, desc, clickable, width, opacity;
   QString outline_color, outline_width, fill_color, fill_opacity;
   int color; // a index, not color number
+  QString points;
 };
 
 typedef vector<MapAttribute> FileTrkAttr;
+//typedef map<MapAttribute> FileTrkAttr;
 
 class MainWindow : public QMainWindow
 {
@@ -51,6 +53,7 @@ class MainWindow : public QMainWindow
     void backup_file();
     QTextEdit *text_edit_;
     void search_all(QDomNode &n, const QString &tag_name);
+    void get_trk_points(QDomNode &n, const QString &tag_name, QString &points);
     void get_trk_info(QDomNode &n, const QString &tag_name);
     void get_points(const QDomDocument &dom_doc);
     QString check_gpx_type(const QDomDocument &dom_doc);
@@ -79,6 +82,7 @@ class MainWindow : public QMainWindow
     QString dirname_, basename_, file_name_, backup_fn_;
     QDomDocument dom_doc_;
     vector<FileTrkAttr*> file_trk_attr_;
+    //map<QString, FileTrkAttr*> file_trk_attr_;
 
     void fill_data(int offset=0x4e10);
     int write_to_save_file(const QString &w_fn);

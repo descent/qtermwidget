@@ -376,14 +376,15 @@ void MainWindow::get_trk(const QString &fn, int index)
   qf.close();
 
   QString tag_name=check_gpx_type(doc);
+  QString trk_name;
   if (tag_name=="rtept")
-    tag_name="rte";
+    trk_name="rte";
   if (tag_name=="trkpt")
-    tag_name="trk";
+    trk_name="trk";
 
   QObject::disconnect(track_list_, SIGNAL(currentIndexChanged ( int )), this, SLOT(load_gpx_attr(int)));
   track_list_->clear();
-  QDomNodeList node_list=doc.elementsByTagName(tag_name);
+  QDomNodeList node_list=doc.elementsByTagName(trk_name);
 
   FileTrkAttr* cur_file_trk_attr = file_trk_attr_[index];
 
@@ -402,10 +403,15 @@ void MainWindow::get_trk(const QString &fn, int index)
         track_list_->addItem(e.text());
 	MapAttribute trk_attr;
         trk_attr.name=e.text();
+	//qDebug() << e.text();
         trk_attr.color=i%(sizeof(colors)/sizeof(char*));
+
+	// current code, points will do many copy time.
+        get_trk_points(n, tag_name, trk_attr.points);
         cur_file_trk_attr->push_back(trk_attr);
       }
     }
+    //get_trk_points(n.firstChild(), tag_name);
   }
 
   route_name_->setText((*cur_file_trk_attr)[0].name);
@@ -610,6 +616,62 @@ void MainWindow::search_all(QDomNode &n, const QString &tag_name)
   return;
 }
 
+void MainWindow::get_trk_points(QDomNode &n, const QString &tag_name, QString &points)
+{
+  static bool a_trk_seg=false;
+  //qDebug() << "tag_name: " << tag_name;
+  while(!n.isNull()) 
+  {
+    QDomElement e = n.toElement(); // try to convert the node to an element.
+    if(!e.isNull()) 
+    {
+      //cout << qPrintable(e.tagName()) << endl; // the node really is an element.
+      //sleep(1);
+      if (e.tagName()=="trkseg")
+      { // begin collect all points
+        //qDebug() << "1"; 
+        a_trk_seg=true;
+      } // if (e.tagName()=="trkseg")
+      if (e.tagName()=="/trkseg")
+      { // begin collect all points
+        //qDebug() << "2"; 
+        a_trk_seg=false;
+	return;
+      } // if (e.tagName()=="trkseg")
+
+      if (a_trk_seg==true && e.tagName()==tag_name)
+      {
+        //qDebug() << "3"; 
+	points += ("[" + e.attribute("lat") + "," + e.attribute("lon") + "],");
+	//qDebug() << e.attribute("lat") + "," + e.attribute("lon");
+
+	//text_edit_->insertPlainText(e.attribute("lon"));
+      }
+         QDomNode node = e.firstChild();
+         if(!node.isNull()) 
+	 {
+           get_trk_points(node, tag_name, points);
+	 }
+	 else
+	 {
+           //cout << "node.isNull()" << endl;
+           //return;
+	 }
+     }
+     else
+     {
+       //cout << "e.isNull()" << endl;
+       return;
+     }
+
+
+     //cout << "n.nextSibling()" << endl;
+     n = n.nextSibling();
+     //n = n.firstChild();
+  }
+  return;
+}
+
 
 void MainWindow::save_as_slot()
 {
@@ -709,6 +771,7 @@ int MainWindow::write_to_save_file(const QString &w_fn)
     //cout << "root tagname: " << qPrintable(docElem.tagName()) << endl; // the node really is an element.
 
     QDomNode n = docElem.firstChild();
+    //FileTrkAttr* cur_file_trk_attr = file_trk_attr_[fn];
 
     #if 0
     // produce the html code
@@ -727,7 +790,9 @@ int MainWindow::write_to_save_file(const QString &w_fn)
     trk_segments[t] = [];").arg(i+1).arg(map_attr_[i].name).arg(colors[map_attr_[i].color]);
 
     points_ += "trk_segments[t].push({points:[";
+
     get_points(doc);
+
     search_all(n, check_gpx_type(doc));
     points_ += QString("]}); \
                 \nGV_Draw_Track(t); \
