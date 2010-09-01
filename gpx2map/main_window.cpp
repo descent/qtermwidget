@@ -449,7 +449,6 @@ void MainWindow::get_trk(const QString &fn, int index)
     //get_trk_points(n.firstChild(), tag_name);
   }
 
-  route_name_->setText((*cur_file_trk_attr)[0].name);
   QObject::connect(track_list_, SIGNAL(currentIndexChanged ( int )), this, SLOT(load_gpx_attr(int)));
   unsetCursor();
 
@@ -575,6 +574,12 @@ void MainWindow::open_file_slot()
   QObject::connect(files_, SIGNAL(currentIndexChanged ( int )), this, SLOT(select_gpx_file(int)));
 
   get_trk(fn_list_.at(0), 0); // get the first file all trk name
+
+  FileTrkAttr *first_file_trk_attr = 0;
+  if (file_trk_attr_.count(dirname_ + "/" + files_->itemText(0)))
+    first_file_trk_attr = file_trk_attr_[(dirname_ + "/" + files_->itemText(0))];
+
+  route_name_->setText((*first_file_trk_attr)[0].name);
 
 
   dirname_=fn.left(fn.lastIndexOf("/"));
