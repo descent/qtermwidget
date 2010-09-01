@@ -360,6 +360,21 @@ void MainWindow::about_slot()
 
 #define QT_FILE_IO
 
+
+FileTrkAttr* MainWindow::get_cur_file_trk_attr()
+{
+  //FileTrkAttr* cur_file_trk_attr = 0;
+  if (file_trk_attr_.count(dirname_ + "/" + files_->currentText()))
+  {
+    //cur_file_trk_attr = file_trk_attr_[fn];
+    return file_trk_attr_[dirname_ + "/" + files_->currentText()];
+  }
+  else
+  {
+    return 0;
+  }
+}
+
 void MainWindow::get_trk(const QString &fn, int index)
 {
   if (fn.isNull()) return;
@@ -405,6 +420,7 @@ void MainWindow::get_trk(const QString &fn, int index)
   {
   }
 
+  QStringList color_name=QColor::colorNames();
   cur_file_trk_attr->clear();
   for (int i=0 ; i < node_list.size() ; ++i)
   {
@@ -422,6 +438,7 @@ void MainWindow::get_trk(const QString &fn, int index)
         trk_attr.name=e.text();
 	//qDebug() << e.text();
         trk_attr.color=i%(sizeof(colors)/sizeof(char*));
+        trk_attr.qc=color_name.at((i+16)%color_name.size());
 
 	// current code, points will do many copy time.
         get_trk_points(n, tag_name, trk_attr.points);
@@ -433,7 +450,6 @@ void MainWindow::get_trk(const QString &fn, int index)
   }
 
   route_name_->setText((*cur_file_trk_attr)[0].name);
-  color_combobox_->setCurrentIndex((*cur_file_trk_attr)[0].color);
   QObject::connect(track_list_, SIGNAL(currentIndexChanged ( int )), this, SLOT(load_gpx_attr(int)));
   unsetCursor();
 
@@ -566,6 +582,7 @@ void MainWindow::open_file_slot()
   text_edit_->clear();
   e.setAttribute("path", dirname_);
   statusBar()->showMessage(tr("open"));
+  color_button_->setEnabled(true);
 }
 
 QString MainWindow::check_gpx_type(const QDomDocument &dom_doc)
@@ -758,8 +775,6 @@ int MainWindow::write_to_save_file(const QString &w_fn)
   // the gpx attritube
   MapAttribute map_attr;
   map_attr.name=route_name_->text();
-  map_attr.color=color_combobox_->currentIndex();
-  //map_attr.color=color_combobox_->currentText();
   map_attr_[previous_fn_index_]=map_attr;
 
   points_ = "";
@@ -823,13 +838,16 @@ int MainWindow::write_to_save_file(const QString &w_fn)
 
     for (int i=0 ; i < cur_file_trk_attr->size() ; ++i)
     {
+      QString hc;
+
       MapAttribute trk_attr=(*cur_file_trk_attr)[i];
+      qcolor2html_color_str((*cur_file_trk_attr)[i].qc, hc);
 
       write_trk += QString("t = %1; trk_info[t] = []; \
     trk_info[t]['name'] = '%2'; trk_info[t]['desc'] = ''; trk_info[t]['clickable'] = true; \
     trk_info[t]['color'] = '%3'; trk_info[t]['width'] = 3; trk_info[t]['opacity'] = 0.8; \
     trk_info[t]['outline_color'] = '#000000'; trk_info[t]['outline_width'] = 0; trk_info[t]['fill_color'] = '#E60000'; trk_info[t]['fill_opacity'] = 0; \
-    trk_segments[t] = [];").arg(t).arg(trk_attr.name).arg(colors[trk_attr.color]);
+    trk_segments[t] = [];").arg(t).arg(trk_attr.name).arg(hc);
 	//qDebug() << "trk_attr.points: " << trk_attr.points;
 
       write_trk += "trk_segments[t].push({points:[" + trk_attr.points + \
@@ -959,7 +977,6 @@ void MainWindow::load_gpx_attr(int index)
   //map_attr.name=route_name_->text();
   (*cur_file_trk_attr)[index].name = route_name_->text();
 
-  //map_attr.color=color_combobox_->currentIndex();
   (*cur_file_trk_attr)[index].color = color_combobox_->currentIndex();
 #else
 
@@ -967,8 +984,8 @@ void MainWindow::load_gpx_attr(int index)
   MapAttribute trk_attr = cur_file_trk_attr->at(index);
 
   //qDebug() << "(*cur_file_trk_attr)[index].name:" << (*cur_file_trk_attr)[index].name;
+  (*cur_file_trk_attr)[previous_fn_index_].name = route_name_->text();
   route_name_->setText((*cur_file_trk_attr)[index].name);
-  color_combobox_->setCurrentIndex((*cur_file_trk_attr)[index].color);
 #endif
   //map_attr.color=color_combobox_->currentText();
   //map_attr_[previous_fn_index_]=map_attr;
@@ -1016,7 +1033,8 @@ void MainWindow::create_form_groupbox()
   QBoxLayout *layout = new QBoxLayout(QBoxLayout::LeftToRight);
   QFormLayout *form_layout = new QFormLayout;
 
-  color_combobox_ = new QComboBox(this);
+  color_button_ = new QPushButton(tr("Select Color"), this);
+  color_button_->setEnabled(false);
   files_ = new QComboBox(this);
   track_list_ = new QComboBox(this);
   track_list_->setEditable(true);
@@ -1032,7 +1050,7 @@ void MainWindow::create_form_groupbox()
   form_layout->addRow(new QLabel(tr("track list")), track_list_);
 
   form_layout->addRow(new QLabel(tr("route name")), route_name_);
-  form_layout->addRow(new QLabel(tr("route color")), color_combobox_);
+  form_layout->addRow(new QLabel(tr("route color")), color_button_);
   form_layout->addRow(new QLabel(tr("google map key")), google_map_key_);
   
 #if 0
@@ -1042,13 +1060,8 @@ void MainWindow::create_form_groupbox()
   line_layout->addWidget(new QLabel(tr("Route Name: ")));
   line_layout->addWidget(route_name_);
   line_layout->addWidget(new QLabel(tr("Color: ")));
-  line_layout->addWidget(color_combobox_);
 #endif
 
-  for (int i=0 ; i < sizeof(colors)/sizeof(char*) ; ++i)
-  {
-    color_combobox_->addItem(colors[i]);
-  }
     //QString styleSheet = "QComboBox   {  color:  #0000A0;   }";
     //color_combobox_->setStyleSheet(styleSheet);
   #if 0
@@ -1072,8 +1085,26 @@ void MainWindow::create_form_groupbox()
 
   QObject::connect(files_, SIGNAL(currentIndexChanged ( int )), this, SLOT(select_gpx_file(int)));
   QObject::connect(track_list_, SIGNAL(currentIndexChanged ( int )), this, SLOT(load_gpx_attr(int)));
+
+  QObject::connect(color_button_, SIGNAL(pressed( )), this, SLOT(open_color_dialog()));
 }
 
+void MainWindow::open_color_dialog()
+{
+  FileTrkAttr* file_trk_attr=get_cur_file_trk_attr();
+  QColor qc = QColorDialog::getColor((*file_trk_attr)[track_list_->currentIndex()].qc, this);
+  if (qc.isValid())
+  {
+    QString hc;
+    qcolor2html_color_str(qc, hc);
+    qDebug() << "hc:" << hc;
+    (*file_trk_attr)[track_list_->currentIndex()].qc=qc;
+    //color_button_->setPalette(qc);
+    //color_button_->setBackgroundRole(qc);
+  }
+
+
+}
 
 void MainWindow::backup_file_slot()
 {

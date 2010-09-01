@@ -17,6 +17,7 @@ class QTextEdit;
 class QTabWidget;
 class QComboBox;
 class QLineEdit;
+class QPushButton;
 
 #include <QTextEdit>
 #include <QGroupBox>
@@ -37,6 +38,7 @@ struct MapAttribute
   QString name, desc, clickable, width, opacity;
   QString outline_color, outline_width, fill_color, fill_opacity;
   int color; // a index, not color number
+  QColor qc;
   QString points;
 };
 
@@ -58,13 +60,14 @@ class MainWindow : public QMainWindow
     void get_points(const QDomDocument &dom_doc);
     QString check_gpx_type(const QDomDocument &dom_doc);
     void get_trk(const QString &fn, int index);
+    FileTrkAttr* get_cur_file_trk_attr();
 
 
 
   private:
     QStringList fn_list_;
     int previous_fn_index_;
-    QComboBox *color_combobox_;
+    QPushButton *color_button_;
     map<int, MapAttribute> map_attr_;
     QFile qf_;
     QString points_;
@@ -92,6 +95,7 @@ class MainWindow : public QMainWindow
     void closeEvent ( QCloseEvent * event );
 
   public slots:
+    void open_color_dialog();
     void load_gpx_attr(int index);
     void select_gpx_file(int index);
     void open_file_slot();
