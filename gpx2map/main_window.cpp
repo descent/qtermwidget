@@ -95,6 +95,14 @@ const char *colors[]=
   qa_obj->setShortcut(QKeySequence(keybind)); \
 }
 
+bool qcolor2html_color_str(const QColor &qc, QString &html_color_str)
+{
+  QTextStream out(&html_color_str);
+  out << hex << qc.rgb();
+  html_color_str.replace(0, 2, "#");
+  return true;
+}
+
 MainWindow::MainWindow():QMainWindow(), previous_fn_index_(0)
 { 
   setWindowIcon(QIcon(":/images/window_icon.png"));
