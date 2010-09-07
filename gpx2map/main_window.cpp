@@ -454,6 +454,7 @@ void MainWindow::get_trk(const QString &fn, int index)
 
   QObject::connect(track_list_, SIGNAL(currentIndexChanged ( int )), this, SLOT(load_gpx_attr(int)));
   unsetCursor();
+  parse_gpx_.insert(fn);
 
 #if 0
   QDomElement docElem = doc.documentElement();
@@ -580,6 +581,7 @@ void MainWindow::open_file_slot()
     map_attr.color=i%(sizeof(colors)/sizeof(char*));
     map_attr_[i]=map_attr;
   }
+  parse_gpx_.clear();
   dirname_=fn.left(fn.lastIndexOf("/"));
   QObject::connect(files_, SIGNAL(currentIndexChanged ( int )), this, SLOT(select_gpx_file(int)));
 
@@ -837,6 +839,9 @@ int MainWindow::write_to_save_file(const QString &w_fn)
   QFile qf;
   QFile template_file;
 
+  // update FileTrkAttr
+  load_gpx_attr(track_list_->currentIndex());
+
   // save map attribute, in the place should do the action,
   // because files_ doesn't single the currentIndexChanged(int), files_ will not recode 
   // the gpx attritube
@@ -855,7 +860,15 @@ int MainWindow::write_to_save_file(const QString &w_fn)
     fn=fn_list_.at(i);
     if (fn.isNull()) break;
 
-    get_trk(fn_list_.at(i), i); 
+    if (!parse_gpx_.count(fn))
+    {
+      //qDebug() << "xx";
+      get_trk(fn_list_.at(i), i); 
+    }
+    else
+    {
+      //qDebug() << "yy";
+    }
 
     qf_.setFileName(fn);
     if (!qf_.open(QIODevice::ReadOnly))

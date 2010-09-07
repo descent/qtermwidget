@@ -5,6 +5,7 @@
 #include <QString>
 
 #include <map>
+#include <set>
 
 using namespace std;
 
@@ -66,6 +67,7 @@ class MainWindow : public QMainWindow
 
 
   private:
+    set<QString> parse_gpx_; // get track in these GPX files.
     QStringList fn_list_;
     int previous_fn_index_;
     QPushButton *color_button_;
