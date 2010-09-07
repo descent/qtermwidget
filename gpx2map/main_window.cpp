@@ -579,7 +579,8 @@ void MainWindow::open_file_slot()
   if (file_trk_attr_.count(dirname_ + "/" + files_->itemText(0)))
     first_file_trk_attr = file_trk_attr_[(dirname_ + "/" + files_->itemText(0))];
 
-  route_name_->setText((*first_file_trk_attr)[0].name);
+  if (first_file_trk_attr)
+    route_name_->setText((*first_file_trk_attr)[0].name);
 
 
   dirname_=fn.left(fn.lastIndexOf("/"));
