@@ -560,6 +560,12 @@ void MainWindow::open_file_slot()
   }
 #endif
 
+  // need free file_trk_attr_[0] ... file_trk_attr_[size-1] FileTrkAttr
+  // then call clear() to clear all map element.
+  // If don't do this, will get memory leak issue.
+  map<QString, FileTrkAttr*>::iterator it;
+  for (it = file_trk_attr_.begin() ; it != file_trk_attr_.end() ; ++it)
+    delete it->second; 
   file_trk_attr_.clear();
 
   for (int i=0 ; i < fn_list_.length() ; ++i)
