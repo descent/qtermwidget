@@ -424,8 +424,12 @@ void MainWindow::get_trk(const QString &fn, int index)
   cur_file_trk_attr->clear();
   for (int i=0 ; i < node_list.size() ; ++i)
   {
+    MapAttribute trk_attr;
     QDomNode n = node_list.at(i).firstChild();
     //QDomNode node = e.firstChild();
+
+    get_trk_name(n, trk_attr.name);
+    qDebug() << "trk_attr.name: " << trk_attr.name;
 
     if(!n.isNull()) 
     {
@@ -433,9 +437,8 @@ void MainWindow::get_trk(const QString &fn, int index)
       if(!e.isNull()) 
       {
         //cout << qPrintable(e.tagName()) << endl; // the node really is an element.
-        track_list_->addItem(e.text());
-	MapAttribute trk_attr;
-        trk_attr.name=e.text();
+        track_list_->addItem(trk_attr.name);
+        //trk_attr.name=e.text();
 	//qDebug() << e.text();
         trk_attr.color=i%(sizeof(colors)/sizeof(char*));
         trk_attr.qc=color_name.at((i+16)%color_name.size());
@@ -663,6 +666,50 @@ void MainWindow::search_all(QDomNode &n, const QString &tag_name)
      //n = n.firstChild();
   }
   return;
+}
+
+#if 0
+1st format, no name attribute
+<trk>
+<trkseg>
+<trkpt lat="25.000238000" lon="121.612724000">
+
+2nd format, has name attribute
+<trk>
+<name>Track 101</name>
+ <desc>Total Track Points: 765. Total time: 1h18m51s. Journey: 15.356Km</desc>
+ <trkseg>
+
+3rd format, has name attribute
+<rte>
+<name>Route 0</name>
+<rtept lat="25.045307" lon="121.615578">
+
+
+
+
+#endif
+
+void MainWindow::get_trk_name(QDomNode &node, QString &trk_name)
+{
+  QDomNode n = node;
+
+  while(!n.isNull()) 
+  {
+    QDomElement e = n.toElement(); // try to convert the node to an element.
+    if (e.tagName()=="name")
+    {
+      trk_name=e.text();
+      return;
+    }
+    if (e.tagName()=="trkseg")
+    {
+      trk_name=""; // not found trk name attribute.
+      return;
+    }
+    n = n.firstChild();
+
+  }
 }
 
 void MainWindow::get_trk_points(QDomNode &n, const QString &tag_name, QString &points)

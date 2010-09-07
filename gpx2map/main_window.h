@@ -56,6 +56,7 @@ class MainWindow : public QMainWindow
     QTextEdit *text_edit_;
     void search_all(QDomNode &n, const QString &tag_name);
     void get_trk_points(QDomNode &n, const QString &tag_name, QString &points);
+    void get_trk_name(QDomNode &node, QString &trk_name);
     void get_trk_info(QDomNode &n, const QString &tag_name);
     void get_points(const QDomDocument &dom_doc);
     QString check_gpx_type(const QDomDocument &dom_doc);
