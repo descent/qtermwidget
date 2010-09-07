@@ -574,19 +574,27 @@ void MainWindow::open_file_slot()
     map_attr.color=i%(sizeof(colors)/sizeof(char*));
     map_attr_[i]=map_attr;
   }
+  dirname_=fn.left(fn.lastIndexOf("/"));
   QObject::connect(files_, SIGNAL(currentIndexChanged ( int )), this, SLOT(select_gpx_file(int)));
 
   get_trk(fn_list_.at(0), 0); // get the first file all trk name
 
   FileTrkAttr *first_file_trk_attr = 0;
+#if 0
   if (file_trk_attr_.count(dirname_ + "/" + files_->itemText(0)))
     first_file_trk_attr = file_trk_attr_[(dirname_ + "/" + files_->itemText(0))];
+#else
+  if (file_trk_attr_.count(fn_list_.at(0)))
+    first_file_trk_attr = file_trk_attr_[fn_list_.at(0)];
+#endif
 
   if (first_file_trk_attr)
+  {
+    //qDebug() << "asd;" << (*first_file_trk_attr)[0].name;
     route_name_->setText((*first_file_trk_attr)[0].name);
+  }
 
 
-  dirname_=fn.left(fn.lastIndexOf("/"));
 
   text_edit_->clear();
   e.setAttribute("path", dirname_);
