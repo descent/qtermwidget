@@ -980,7 +980,7 @@ int MainWindow::write_to_save_file(const QString &w_fn)
   pos=template_data.indexOf("@@");
   qDebug() << "pos: " << pos;
   //template_data.replace(pos, 2, points_.toAscii());
-  template_data.replace(pos, 2, write_trk.toAscii());
+  template_data.replace(pos, 2, write_trk.toUtf8());
   template_file.close();
 
   text_edit_->insertPlainText(template_data);
