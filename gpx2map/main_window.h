@@ -86,6 +86,7 @@ class MainWindow : public QMainWindow
  
     QByteArray qba_;
     QString save_dirname_, dirname_, basename_, file_name_, backup_fn_;
+    int color_index_;
     QDomDocument dom_doc_;
     //vector<FileTrkAttr*> file_trk_attr_;
     map<QString, FileTrkAttr*> file_trk_attr_;

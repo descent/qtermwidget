@@ -444,8 +444,12 @@ void MainWindow::get_trk(const QString &fn, int index)
         track_list_->addItem(trk_attr.name);
         //trk_attr.name=e.text();
 	//qDebug() << e.text();
-        trk_attr.color=i%(sizeof(colors)/sizeof(char*));
-        trk_attr.qc=color_name.at((i+16)%color_name.size());
+        trk_attr.color=color_index_%(sizeof(colors)/sizeof(char*));
+        trk_attr.qc=color_name.at((color_index_+color_name.size())%color_name.size());
+	//qDebug() << "(color_index_+color_name.size())%color_name.size(): " << (color_index_+color_name.size())%color_name.size();
+	//qDebug() << "color_name.size(): " << color_name.size();
+	//qDebug() << "color_index_:" << color_index_;
+	color_index_+=19;
 
 	// current code, points will do many copy time.
         get_trk_points(n, tag_name, trk_attr.points);
@@ -550,6 +554,8 @@ void MainWindow::open_file_slot()
   //file_name_ = QFileDialog::getOpenFileName(this, tr("Open GPX"), dirname_);
   fn_list_ = QFileDialog::getOpenFileNames(this, tr("Open GPX"), dirname_, "*.gpx");
   if (fn_list_.length()==0) return;
+
+  color_index_ = 1;
 
   QObject::disconnect(files_, SIGNAL(currentIndexChanged ( int )), this, SLOT(select_gpx_file(int)));
   files_->clear();
