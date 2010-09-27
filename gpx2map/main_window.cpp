@@ -791,7 +791,7 @@ void MainWindow::save_as_slot()
   backup_fn_= file_name_ + ".bak";
   file_name_ = QFileDialog::getSaveFileName(this, tr("Open Rich8 to Save As"), dirname_);
   if (file_name_.isNull()) return;
-  dirname_=file_name_.left(file_name_.lastIndexOf("/"));
+  save_dirname_=file_name_.left(file_name_.lastIndexOf("/"));
   basename_=file_name_.right(file_name_.size() - file_name_.lastIndexOf('/')-1);
 
   save_file_slot();

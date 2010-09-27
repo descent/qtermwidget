@@ -85,7 +85,7 @@ class MainWindow : public QMainWindow
     QAction *change_font_, *backup_file_;
  
     QByteArray qba_;
-    QString dirname_, basename_, file_name_, backup_fn_;
+    QString save_dirname_, dirname_, basename_, file_name_, backup_fn_;
     QDomDocument dom_doc_;
     //vector<FileTrkAttr*> file_trk_attr_;
     map<QString, FileTrkAttr*> file_trk_attr_;
