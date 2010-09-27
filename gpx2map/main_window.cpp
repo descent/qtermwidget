@@ -263,6 +263,10 @@ void MainWindow::open_cfg()
 
 
 
+    tag = dom_doc_.createElement("save_file_path");
+    root.appendChild(tag);
+    t = dom_doc_.createTextNode(".");
+    tag.appendChild(t);
   
     tag = dom_doc_.createElement("open_file_path");
     root.appendChild(tag);
@@ -788,11 +792,20 @@ void MainWindow::get_trk_points(QDomNode &n, const QString &tag_name, QString &p
 
 void MainWindow::save_as_slot()
 {
+  QDomNodeList nodes=dom_doc_.elementsByTagName("save_file_path");
+  QDomElement e = nodes.at(0).toElement(); // try to convert the node to an element.
+
+  if (save_dirname_.isNull())
+  {
+    save_dirname_= e.attribute("path");
+  }
+
   backup_fn_= file_name_ + ".bak";
-  file_name_ = QFileDialog::getSaveFileName(this, tr("Open Rich8 to Save As"), dirname_);
+  file_name_ = QFileDialog::getSaveFileName(this, tr("Save As"), save_dirname_);
   if (file_name_.isNull()) return;
   save_dirname_=file_name_.left(file_name_.lastIndexOf("/"));
   basename_=file_name_.right(file_name_.size() - file_name_.lastIndexOf('/')-1);
+  e.setAttribute("path", save_dirname_);
 
   save_file_slot();
 }
