@@ -60,6 +60,7 @@
 using namespace std;
 
 #include "main_window.h"
+#include "browserwindow.hpp"
 
 
 #ifdef Q_OS_WIN32
@@ -123,6 +124,7 @@ MainWindow::MainWindow():QMainWindow(), previous_fn_index_(0)
   ADD_ACTION(file_menu_, open_file_, "&Open File", open_file_slot )
   //ADD_ACTION(file_menu_, save_file_, "&Save", save_file_slot )
   ADD_ACTION(file_menu_, save_as_, "Save &As", save_as_slot )
+  ADD_ACTION(file_menu_, preview_, "Pre&view", preview_slot )
 
   setting_menu_ = menuBar()->addMenu(tr("&Setting"));
   ADD_ACTION(setting_menu_, change_font_, "&Font", change_font_slot);
@@ -795,6 +797,27 @@ void MainWindow::get_trk_points(QDomNode &n, const QString &tag_name, QString &p
   return;
 }
 
+void MainWindow::preview_slot()
+{
+
+  qDebug("preview_slot");
+
+  QString url("file:////home/test/qt-prog/gpx2map/d1.html");
+  BrowserWindow *browser = new BrowserWindow(url);
+
+  //QDialog dialog;
+  //QVBoxLayout *layout = new QVBoxLayout;
+
+  browser->show();
+  //layout->addWidget(browser, 1);
+  //dialog.setLayout(layout);
+
+  //dialog.show();
+
+
+  //delete browser;
+
+}
 
 void MainWindow::save_as_slot()
 {

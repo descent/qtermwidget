@@ -80,6 +80,7 @@ class MainWindow : public QMainWindow
     QGroupBox *formGroupBox;
     QMenu *file_menu_, *edit_menu_, *help_menu_;
     QAction *open_file_, *save_file_, *save_as_;
+    QAction *preview_;
     QAction *about_;
     QMenu *setting_menu_;
     QAction *change_font_, *backup_file_;
@@ -106,6 +107,7 @@ class MainWindow : public QMainWindow
     void save_file_slot();
     void save_as_slot();
     void change_save_file_offset ( int index );
+    void preview_slot();
 
 
   private slots:

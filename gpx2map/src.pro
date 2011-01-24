@@ -2,10 +2,10 @@
 #CONFIG		+= qt debug_and_release warn_on build_all
 #CONFIG		+= qt release warn_on build_all
 
-CONFIG += static 
+#CONFIG += static 
 #CONFIG += staticlib
-
-QT += core gui xml
+CONFIG      += console debug
+QT += core gui xml network webkit
 TARGET 	= gpx2map
 
 
@@ -17,9 +17,17 @@ ICON = qtdemo.icns
 QMAKE_INFO_PLIST = Info_mac.plist
 }
 
-HEADERS = main_window.h
+HEADERS = main_window.h \
+          browserwindow.hpp \
+	  kuhn_munkres.hpp \
+	  alt_key.hpp
+
 SOURCES	= main_window.cpp \
+          browserwindow.cpp \
+	  kuhn_munkres.cpp \
+	  alt_key.cpp \
           main.cpp
+
 
 
 
