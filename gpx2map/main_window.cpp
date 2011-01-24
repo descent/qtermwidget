@@ -104,7 +104,7 @@ bool qcolor2html_color_str(const QColor &qc, QString &html_color_str)
   return true;
 }
 
-MainWindow::MainWindow():QMainWindow(), previous_fn_index_(0)
+MainWindow::MainWindow():QMainWindow(), previous_fn_index_(0), browser_(0)
 { 
   setWindowIcon(QIcon(":/images/window_icon.png"));
   open_cfg();
@@ -797,18 +797,30 @@ void MainWindow::get_trk_points(QDomNode &n, const QString &tag_name, QString &p
   return;
 }
 
+//#define DEBUG_PREVIEX
 void MainWindow::preview_slot()
 {
 
-  qDebug("preview_slot");
+  qDebug() << "preview_fn_" << preview_fn_;
+  preview_fn_.prepend("file://");
+  qDebug() << "xx preview_fn_" << preview_fn_;
 
+#ifdef DEBUG_PREVIEX
   QString url("file:////home/test/qt-prog/gpx2map/d1.html");
   BrowserWindow *browser = new BrowserWindow(url);
+#else
+  if (browser_==0)
+    browser_ = new BrowserWindow(preview_fn_);
+  else
+  {
+    browser_->load(preview_fn_);
+  }
+#endif
+  browser_->show();
 
   //QDialog dialog;
   //QVBoxLayout *layout = new QVBoxLayout;
 
-  browser->show();
   //layout->addWidget(browser, 1);
   //dialog.setLayout(layout);
 
@@ -881,6 +893,7 @@ int MainWindow::write_to_save_file(const QString &w_fn)
   QFile qf;
   QFile template_file;
 
+  qDebug() << "w_fn: " << w_fn;
   // update FileTrkAttr
   load_gpx_attr(track_list_->currentIndex());
 
@@ -1047,6 +1060,7 @@ int MainWindow::write_to_save_file(const QString &w_fn)
 #endif
 
   qf.close();
+  preview_fn_ = w_fn;
   return 0;
 }
 

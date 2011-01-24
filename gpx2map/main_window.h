@@ -19,6 +19,7 @@ class QTabWidget;
 class QComboBox;
 class QLineEdit;
 class QPushButton;
+class BrowserWindow;
 
 #include <QTextEdit>
 #include <QGroupBox>
@@ -67,6 +68,7 @@ class MainWindow : public QMainWindow
 
 
   private:
+    BrowserWindow *browser_;
     set<QString> parse_gpx_; // get track in these GPX files.
     QStringList fn_list_;
     int previous_fn_index_;
@@ -95,6 +97,7 @@ class MainWindow : public QMainWindow
     void fill_data(int offset=0x4e10);
     int write_to_save_file(const QString &w_fn);
     void open_cfg();
+    QString preview_fn_;
 
   protected:
     void closeEvent ( QCloseEvent * event );
