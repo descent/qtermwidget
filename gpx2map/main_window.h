@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include <QString>
+#include <QTreeWidget>
+
 
 #include <map>
 #include <set>
@@ -31,10 +33,13 @@ class BrowserWindow;
 //QT_END_NAMESPACE
 #endif
 
+#include "route_item.h"
+
 typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned int u32;
 
+#if 0
 struct MapAttribute
 {
   QString name, desc, clickable, width, opacity;
@@ -43,6 +48,7 @@ struct MapAttribute
   QColor qc;
   QString points;
 };
+#endif
 
 typedef vector<MapAttribute> FileTrkAttr;
 //typedef map<MapAttribute> FileTrkAttr;
@@ -68,11 +74,14 @@ class MainWindow : public QMainWindow
 
 
   private:
+    QTreeWidget *route_view_, *select_route_view_;
     BrowserWindow *browser_;
     set<QString> parse_gpx_; // get track in these GPX files.
     QStringList fn_list_;
     int previous_fn_index_;
     QPushButton *color_button_;
+    QPushButton *select_route_button_;
+    QPushButton *preview_button_;
     map<int, MapAttribute> map_attr_;
     QFile qf_;
     QString points_;
@@ -103,6 +112,7 @@ class MainWindow : public QMainWindow
     void closeEvent ( QCloseEvent * event );
 
   public slots:
+    void select_route_slot();
     void open_color_dialog();
     void load_gpx_attr(int index);
     void select_gpx_file(int index);
@@ -111,6 +121,7 @@ class MainWindow : public QMainWindow
     void save_as_slot();
     void change_save_file_offset ( int index );
     void preview_slot();
+    void preview_without_save_slot();
 
 
   private slots:

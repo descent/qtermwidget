@@ -18,6 +18,7 @@ QMAKE_INFO_PLIST = Info_mac.plist
 }
 
 HEADERS = main_window.h \
+          route_item.h \
           browserwindow.hpp \
 	  kuhn_munkres.hpp \
 	  alt_key.hpp

@@ -448,6 +448,20 @@ void MainWindow::get_trk(const QString &fn, int index)
 	//qDebug() << e.text();
         trk_attr.color=color_index_%(sizeof(colors)/sizeof(char*));
         trk_attr.qc=color_name.at((color_index_+color_name.size())%color_name.size());
+
+        RouteItem *item = new RouteItem(route_view_);
+	if (trk_attr.name=="")
+	  trk_attr.name="noname";
+
+        item->setText(0, trk_attr.name);
+        item->setText(1, trk_attr.name);
+	QFileInfo fi(fn);
+        item->setText(3, fi.fileName());
+	//route_view_->editItem(item, 1);
+	//item->setFlags(item->flags() | Qt::ItemIsEditable);
+
+        //item->setText(1, "route color 1");
+
 	//qDebug() << "(color_index_+color_name.size())%color_name.size(): " << (color_index_+color_name.size())%color_name.size();
 	//qDebug() << "color_name.size(): " << color_name.size();
 	//qDebug() << "color_index_:" << color_index_;
@@ -457,6 +471,8 @@ void MainWindow::get_trk(const QString &fn, int index)
         get_trk_points(n, tag_name, trk_attr.points);
 	//qDebug() << "trk_attr.points: " << trk_attr.points;
         cur_file_trk_attr->push_back(trk_attr);
+
+	item->set_attr(trk_attr);
       }
     }
     //get_trk_points(n.firstChild(), tag_name);
@@ -795,6 +811,110 @@ void MainWindow::get_trk_points(QDomNode &n, const QString &tag_name, QString &p
      //n = n.firstChild();
   }
   return;
+}
+
+void MainWindow::preview_without_save_slot()
+{
+  QString write_trk;
+  QList<QTreeWidgetItem *> select_items=select_route_view_->selectedItems();
+
+  // preview all items
+  if (select_items.count()==0)
+  {
+    QTreeWidgetItemIterator it(select_route_view_);
+    while (*it) 
+    {
+      select_items.append(*it);
+      ++it;
+    }
+
+  }
+
+  qDebug() << "MainWindow::preview_without_save_slot";
+  int t=1;
+  for (int i=0; i < select_items.count() ; ++i)
+  {
+    RouteItem *ri = (RouteItem*)select_items.at(i);
+
+      QString hc;
+
+      MapAttribute trk_attr=ri->get_attr();
+      qcolor2html_color_str(trk_attr.qc, hc);
+
+      write_trk += QString("t = %1; trk_info[t] = []; \
+    trk_info[t]['name'] = '%2'; trk_info[t]['desc'] = ''; trk_info[t]['clickable'] = true; \
+    trk_info[t]['color'] = '%3'; trk_info[t]['width'] = 3; trk_info[t]['opacity'] = 0.8; \
+    trk_info[t]['outline_color'] = '#000000'; trk_info[t]['outline_width'] = 0; trk_info[t]['fill_color'] = '#E60000'; trk_info[t]['fill_opacity'] = 0; \
+    trk_segments[t] = [];").arg(t).arg(trk_attr.name).arg(hc);
+	qDebug() << "trk_attr.points: " << trk_attr.points;
+
+      write_trk += "trk_segments[t].push({points:[" + trk_attr.points + \
+	            QString("]}); \
+                \nGV_Draw_Track(t); \
+	        t = %1; GV_Add_Track_to_Tracklist({bullet:'- ',name:trk_info[t]['name'],desc:trk_info[t]['desc'],color:trk_info[t]['color'],number:t});\n").arg(t);
+      ++t;
+
+  }
+
+
+
+  //qDebug() << write_trk;
+
+  QString template_fn="template.html";
+  QFile template_file;
+  template_file.setFileName(template_fn);
+  if (!template_file.open(QIODevice::ReadOnly))
+  {
+    QMessageBox::warning(this, tr("gpx2map"),
+                             tr("Cannot open file %1:\n%2.")
+                             .arg(template_fn)
+                             .arg(template_file.errorString()));
+
+    return;
+  }
+  QByteArray template_data=template_file.readAll();
+  int pos=0;
+
+  // replace ##, center point
+  pos=template_data.indexOf("##");
+  template_data.replace(pos, 2, center_point_.toAscii());
+
+  // replace ^^
+  pos=template_data.indexOf("^^");
+  template_data.replace(pos, 2, google_map_key_->text().toAscii());
+
+  // replace @@
+  pos=0;
+  pos=template_data.indexOf("@@");
+  qDebug() << "pos: " << pos;
+  //template_data.replace(pos, 2, points_.toAscii());
+  template_data.replace(pos, 2, write_trk.toUtf8());
+  template_file.close();
+
+  QFile temp_qf;
+  QString preview_fn = QFSFileEngine::tempPath() + "/t_view.html";
+
+  temp_qf.setFileName(preview_fn);
+  if (!temp_qf.open(QIODevice::WriteOnly))
+  {
+    QMessageBox::warning(this, tr("gpx2map"),
+                             tr("Cannot save temp file %1:\n%2.")
+                             .arg(preview_fn)
+                             .arg(temp_qf.errorString()));
+
+    return;
+  }
+  int w_len=temp_qf.write(template_data);
+
+  preview_fn.prepend("file://");
+  if (browser_==0)
+    browser_ = new BrowserWindow(preview_fn);
+  else
+  {
+    browser_->load(preview_fn);
+  }
+  browser_->show();
+
 }
 
 //#define DEBUG_PREVIEX
@@ -1217,12 +1337,63 @@ void MainWindow::create_form_groupbox()
   formGroupBox->setLayout(layout);
 
   text_edit_ = new QTextEdit(this);
-  layout->addWidget(text_edit_);
+  //layout->addWidget(text_edit_);
+
+  route_view_ = new QTreeWidget(this);
+  layout->addWidget(route_view_);
+  QStringList labels;
+  labels << tr("origianl route name") << tr("modified route name") << tr("route color") << tr("file");
+  route_view_->setHeaderLabels(labels);
+  route_view_->setSelectionMode(QAbstractItemView::ExtendedSelection);
+
+  select_route_button_ = new QPushButton(tr("select routes"));
+  layout->addWidget(select_route_button_);
+
+
+  //QTreeWidgetItem *item = new QTreeWidgetItem(route_view_);
+  //item->setText(0, "route 1");
+  //item->setText(1, "route color 1");
+  select_route_view_ = new QTreeWidget(this);
+  //select_route_view_->setSelectionMode(QAbstractItemView::MultiSelection);
+  select_route_view_->setHeaderLabels(labels);
+  select_route_view_->setSelectionMode(QAbstractItemView::ExtendedSelection);
+  layout->addWidget(select_route_view_);
+
+  preview_button_ = new QPushButton(tr("preview"));
+  layout->addWidget(preview_button_);
+
+
 
   QObject::connect(files_, SIGNAL(currentIndexChanged ( int )), this, SLOT(select_gpx_file(int)));
   QObject::connect(track_list_, SIGNAL(currentIndexChanged ( int )), this, SLOT(load_gpx_attr(int)));
 
   QObject::connect(color_button_, SIGNAL(pressed( )), this, SLOT(open_color_dialog()));
+
+  QObject::connect(select_route_button_, SIGNAL(pressed( )), this, SLOT(select_route_slot()));
+  QObject::connect(preview_button_, SIGNAL(pressed( )), this, SLOT(preview_without_save_slot()));
+}
+
+void MainWindow::select_route_slot()
+{
+  qDebug() << "select route";
+  QList<QTreeWidgetItem *> select_items=route_view_->selectedItems();
+  for (int i=0; i < select_items.count() ; ++i)
+  {
+    RouteItem *ri = (RouteItem*)select_items.at(i);
+    RouteItem *item = new RouteItem(select_route_view_);
+    item->setText(0, select_items.at(i)->text(0));
+    item->setText(1, select_items.at(i)->text(1));
+    item->set_attr(ri->get_attr());
+    item->setFlags(item->flags() | Qt::ItemIsEditable);
+    //item->setText(0, "test");
+  }
+  //select_route_view_->insertTopLevelItems(1, select_items);
+
+  //select_route_view_->addTopLevelItem(item);
+
+
+  //select_route_view_ = new QTreeWidget(this);
+
 }
 
 void MainWindow::open_color_dialog()
