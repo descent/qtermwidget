@@ -19,6 +19,14 @@ class RouteItem: public QTreeWidgetItem
     RouteItem(QTreeWidget * parent, int type = Type):QTreeWidgetItem(parent, Type)
     {
     }
+    void set_qc(const QColor &qc)
+    {
+      attr_.qc=qc;
+    }
+    const QColor &get_qc() const
+    {
+      return attr_.qc;
+    }
     void set_attr(const MapAttribute & attr)
     {
       attr_=attr; // all fields are objects, need spend much time.

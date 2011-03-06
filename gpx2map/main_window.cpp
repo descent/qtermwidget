@@ -1376,6 +1376,8 @@ void MainWindow::create_form_groupbox()
 
   QObject::connect(select_route_button_, SIGNAL(pressed( )), this, SLOT(select_route_slot()));
   QObject::connect(preview_button_, SIGNAL(pressed( )), this, SLOT(preview_without_save_slot()));
+
+  QObject::connect(select_route_view_, SIGNAL(itemClicked ( QTreeWidgetItem * , int ) ), this, SLOT(open_color_dialog(QTreeWidgetItem * , int ) ));
 }
 
 void MainWindow::select_route_slot()
@@ -1399,6 +1401,29 @@ void MainWindow::select_route_slot()
 
   //select_route_view_ = new QTreeWidget(this);
 
+}
+
+void MainWindow::open_color_dialog(QTreeWidgetItem * item, int column)
+{
+  if (column != 2) return;
+
+  RouteItem *ri=0;
+  if (item)
+    ri = (RouteItem*)item;
+
+  QColor qc = QColorDialog::getColor(ri->get_qc(), this);
+  if (qc.isValid())
+  {
+    ri->set_qc(qc);
+    QString hc;
+    qcolor2html_color_str(qc, hc);
+    ri->setText(2, hc);
+    ri->setForeground(2, qc);
+    qDebug() << "hc:" << hc;
+    //(*file_trk_attr)[track_list_->currentIndex()].qc=qc;
+    //color_button_->setPalette(qc);
+    //color_button_->setBackgroundRole(qc);
+  }
 }
 
 void MainWindow::open_color_dialog()

@@ -113,6 +113,7 @@ class MainWindow : public QMainWindow
 
   public slots:
     void select_route_slot();
+    void open_color_dialog(QTreeWidgetItem * item, int column);
     void open_color_dialog();
     void load_gpx_attr(int index);
     void select_gpx_file(int index);
