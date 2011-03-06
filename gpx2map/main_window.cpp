@@ -906,7 +906,12 @@ void MainWindow::preview_without_save_slot()
   }
   int w_len=temp_qf.write(template_data);
 
+#ifdef Q_OS_WIN32
+  preview_fn.prepend("file:///");
+#else
   preview_fn.prepend("file://");
+#endif
+  qDebug() << "preview_fn : " << preview_fn;
   if (browser_==0)
     browser_ = new BrowserWindow(preview_fn);
   else
