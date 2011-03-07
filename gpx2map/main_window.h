@@ -96,11 +96,10 @@ class MainWindow : public QMainWindow
     QLineEdit *route_name_, *google_map_key_, *point_, *position_, *direction_;
     QGroupBox *formGroupBox;
     QMenu *file_menu_, *edit_menu_, *help_menu_;
-    QAction *open_file_, *save_file_, *save_as_;
-    QAction *preview_;
+    //QAction *open_file_, *save_file_, *save_as_;
     QAction *about_;
     QMenu *setting_menu_;
-    QAction *change_font_, *backup_file_;
+    QAction *change_font_, *show_debug_log_;
  
     QByteArray qba_;
     QString save_dirname_, dirname_, basename_, file_name_, backup_fn_;
@@ -134,14 +133,13 @@ class MainWindow : public QMainWindow
     void save_file_slot();
     void save_as_slot();
     void change_save_file_offset ( int index );
-    void preview_slot();
     void preview_without_save_slot();
 
 
   private slots:
     bool close();
     void change_font_slot();
-    void backup_file_slot();
+    void show_debug_log_slot();
     void about_slot();
 #if 0
     QAction *copy_, *paste_;

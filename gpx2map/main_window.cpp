@@ -120,24 +120,18 @@ MainWindow::MainWindow():QMainWindow(), previous_fn_index_(0), browser_(0)
   setFont(f);
 
   setCentralWidget(formGroupBox);
-  file_menu_ = menuBar()->addMenu(tr("&File"));
-  ADD_ACTION(file_menu_, open_file_, "&Open File", open_file_slot )
+  //file_menu_ = menuBar()->addMenu(tr("&File"));
+  //ADD_ACTION(file_menu_, open_file_, "&Open File", open_file_slot )
   //ADD_ACTION(file_menu_, save_file_, "&Save", save_file_slot )
-  ADD_ACTION(file_menu_, save_as_, "Save &As", save_as_slot )
-  ADD_ACTION(file_menu_, preview_, "Pre&view", preview_slot )
+  //ADD_ACTION(file_menu_, save_as_, "Save &As", save_as_slot )
 
   setting_menu_ = menuBar()->addMenu(tr("&Setting"));
   ADD_ACTION(setting_menu_, change_font_, "&Font", change_font_slot);
-  ADD_ACTION(setting_menu_, backup_file_, "&Backup File", backup_file_slot);
-  backup_file_->setCheckable(true);
+  ADD_ACTION(setting_menu_, show_debug_log_, "&Show Debug Log", show_debug_log_slot);
+  //backup_file_->setCheckable(true);
 
   nodes=dom_doc_.elementsByTagName("backup_file");
   e = nodes.at(0).toElement(); // try to convert the node to an element.
-
-  if (e.attribute("option")=="y")
-    backup_file_->setChecked(true);
-  else
-    backup_file_->setChecked(false);
 
   help_menu_ = menuBar()->addMenu(tr("&Help"));
   ADD_ACTION(help_menu_, about_, "&About", about_slot)
@@ -156,17 +150,6 @@ void MainWindow::closeEvent ( QCloseEvent * event )
 {
   QDomNodeList nodes=dom_doc_.elementsByTagName("backup_file");
   QDomElement e = nodes.at(0).toElement(); // try to convert the node to an element.
-
-  if (backup_file_->isChecked())
-  {
-    qDebug("y");
-    e.setAttribute("option", "y");
-  }
-  else
-  {
-    qDebug("n");
-    e.setAttribute("option", "n");
-  }
 
   nodes=dom_doc_.elementsByTagName("google_map_key");
   if (nodes.size()==0)
@@ -931,40 +914,6 @@ void MainWindow::preview_without_save_slot()
 
 }
 
-//#define DEBUG_PREVIEX
-void MainWindow::preview_slot()
-{
-
-  qDebug() << "preview_fn_" << preview_fn_;
-  preview_fn_.prepend("file://");
-  qDebug() << "xx preview_fn_" << preview_fn_;
-
-#ifdef DEBUG_PREVIEX
-  QString url("file:////home/test/qt-prog/gpx2map/d1.html");
-  BrowserWindow *browser = new BrowserWindow(url);
-#else
-  if (browser_==0)
-    browser_ = new BrowserWindow(preview_fn_);
-  else
-  {
-    browser_->load(preview_fn_);
-  }
-#endif
-  browser_->show();
-
-  //QDialog dialog;
-  //QVBoxLayout *layout = new QVBoxLayout;
-
-  //layout->addWidget(browser, 1);
-  //dialog.setLayout(layout);
-
-  //dialog.show();
-
-
-  //delete browser;
-
-}
-
 void MainWindow::save_as_slot()
 {
   QDomNodeList nodes=dom_doc_.elementsByTagName("save_file_path");
@@ -1203,12 +1152,6 @@ void MainWindow::save_file_slot()
   if (backup_fn_.isEmpty())
     backup_fn_= file_name_ + ".bak";
 
-  if (backup_file_->isChecked())
-  {
-    qDebug() << "backup file: " << backup_fn_;
-    write_to_save_file(backup_fn_);
-  }
-
   // wirte to file
   write_to_save_file(file_name_);
 
@@ -1301,56 +1244,19 @@ void MainWindow::create_form_groupbox()
   //QBoxLayout *line_layout = new QBoxLayout(QBoxLayout::TopToBottom);
   //QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
   QBoxLayout *layout = new QBoxLayout(QBoxLayout::LeftToRight);
-  QFormLayout *form_layout = new QFormLayout;
 
-  color_button_ = new QPushButton(tr("Select Color"), this);
-  color_button_->setEnabled(false);
-  files_ = new QComboBox(this);
-  track_list_ = new QComboBox(this);
-  track_list_->setEditable(true);
-  route_name_ = new QLineEdit(tr(""), this);
-  //google_map_key_ = new QLineEdit("ABQIAAAA8FCDZv0GdTV1ZXaxaBQ9pBTwGRZDfZiPh3bZ0KEOkhpQKe-QJxRFj7qYGmmzROwQb02-A0lCig73Fg", this);
   QDomNodeList nodes=dom_doc_.elementsByTagName("google_map_key");
   qDebug() << "nodes.size() : " << nodes.size();
   QDomElement e = nodes.at(0).toElement(); // try to convert the node to an element.
   qDebug() << "e.attribute(k1): " << e.attribute("k1");
   google_map_key_ = new QLineEdit(e.attribute("k1"), this);
 
-  form_layout->addRow(new QLabel(tr("file list")), files_);
-  form_layout->addRow(new QLabel(tr("track list")), track_list_);
-
-  form_layout->addRow(new QLabel(tr("route name")), route_name_);
-  form_layout->addRow(new QLabel(tr("route color")), color_button_);
-  form_layout->addRow(new QLabel(tr("google map key")), google_map_key_);
   
-#if 0
-  line_layout->addWidget(new QLabel(tr("File List: ")));
-  line_layout->addWidget(files_);
-
-  line_layout->addWidget(new QLabel(tr("Route Name: ")));
-  line_layout->addWidget(route_name_);
-  line_layout->addWidget(new QLabel(tr("Color: ")));
-#endif
-
-    //QString styleSheet = "QComboBox   {  color:  #0000A0;   }";
-    //color_combobox_->setStyleSheet(styleSheet);
-  #if 0
-  QAbstractItemView *v = color_combobox_->view();
-  for (int i=0 ; i < sizeof(colors)/sizeof(char*) ; ++i)
-  {
-    QWidget* w=v->indexWidget(i);
-  }
-  #endif
-
-  //layout->addLayout(line_layout);
-  //layout->addLayout(form_layout);
-
-
   formGroupBox = new QGroupBox(tr("Select GPX Files"));
 
   formGroupBox->setLayout(layout);
 
-  text_edit_ = new QTextEdit(this);
+  text_edit_ = new QTextEdit(0);
   //layout->addWidget(text_edit_);
 
   route_view_ = new QTreeWidget(this);
@@ -1405,11 +1311,6 @@ void MainWindow::create_form_groupbox()
   rv_save_to_html_ = new QPushButton(tr("save to html"));
   v_layout1->addWidget(rv_save_to_html_);
 
-
-  QObject::connect(files_, SIGNAL(currentIndexChanged ( int )), this, SLOT(select_gpx_file(int)));
-  QObject::connect(track_list_, SIGNAL(currentIndexChanged ( int )), this, SLOT(load_gpx_attr(int)));
-
-  QObject::connect(color_button_, SIGNAL(pressed( )), this, SLOT(open_color_dialog()));
 
   QObject::connect(select_route_button_, SIGNAL(pressed( )), this, SLOT(select_route_slot()));
   QObject::connect(preview_button_, SIGNAL(pressed( )), this, SLOT(preview_without_save_slot()));
@@ -1560,8 +1461,9 @@ void MainWindow::open_color_dialog()
 
 }
 
-void MainWindow::backup_file_slot()
+void MainWindow::show_debug_log_slot()
 {
+  text_edit_->show();
 }
 
 void MainWindow::change_font_slot()
