@@ -900,7 +900,7 @@ void MainWindow::preview_without_save_slot()
 
   //qDebug() << "xx template_data: " << template_data;
   QFile temp_qf;
-  preview_fn_ = QFSFileEngine::tempPath() + "/t_view.html";
+  preview_fn_ = QFSFileEngine::tempPath() + "t_view.html";
 
   temp_qf.setFileName(preview_fn_);
   if (!temp_qf.open(QIODevice::WriteOnly))
@@ -1527,7 +1527,6 @@ void MainWindow::open_color_dialog(QTreeWidgetItem * item, int column)
     //(*file_trk_attr)[track_list_->currentIndex()].qc=qc;
     //color_button_->setPalette(qc);
     //color_button_->setBackgroundRole(qc);
-  }
   }
 }
 void MainWindow::modify_route_name_slot(QTreeWidgetItem * item, int column)
