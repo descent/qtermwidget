@@ -1415,6 +1415,7 @@ void MainWindow::create_form_groupbox()
   QObject::connect(preview_button_, SIGNAL(pressed( )), this, SLOT(preview_without_save_slot()));
 
   QObject::connect(select_route_view_, SIGNAL(itemClicked ( QTreeWidgetItem * , int ) ), this, SLOT(open_color_dialog(QTreeWidgetItem * , int ) ));
+  QObject::connect(select_route_view_, SIGNAL(itemChanged ( QTreeWidgetItem * , int ) ), this, SLOT(modify_route_name_slot(QTreeWidgetItem * , int ) ));
 
   QObject::connect(rv_remove_all_, SIGNAL(pressed( )), this, SLOT(rv_remove_all_slot()));
   QObject::connect(sel_rv_remove_all_, SIGNAL(pressed( )), this, SLOT(sel_rv_remove_all_slot()));
@@ -1527,6 +1528,20 @@ void MainWindow::open_color_dialog(QTreeWidgetItem * item, int column)
     //color_button_->setPalette(qc);
     //color_button_->setBackgroundRole(qc);
   }
+  }
+}
+void MainWindow::modify_route_name_slot(QTreeWidgetItem * item, int column)
+{
+  //qDebug() << "column:" << column;
+  // update route name
+  if (column == 1)
+  {
+    RouteItem *ri=0;
+    if (item)
+      ri = (RouteItem*)item;
+    ri->set_rn(ri->text(1));
+  }
+
 }
 
 void MainWindow::open_color_dialog()

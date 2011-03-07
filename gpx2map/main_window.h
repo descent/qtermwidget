@@ -119,6 +119,7 @@ class MainWindow : public QMainWindow
     void closeEvent ( QCloseEvent * event );
 
   public slots:
+    void modify_route_name_slot(QTreeWidgetItem * item, int column);
     void rv_save_to_html_slot();
     void select_route_slot();
     void rv_remove_all_slot();

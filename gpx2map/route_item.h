@@ -19,6 +19,12 @@ class RouteItem: public QTreeWidgetItem
     RouteItem(QTreeWidget * parent, int type = Type):QTreeWidgetItem(parent, Type)
     {
     }
+
+    void set_rn(const QString &rn)
+    {
+      attr_.name=rn;
+    }
+
     void set_qc(const QColor &qc)
     {
       attr_.qc=qc;
