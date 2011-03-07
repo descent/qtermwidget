@@ -82,6 +82,10 @@ class MainWindow : public QMainWindow
     QPushButton *color_button_;
     QPushButton *select_route_button_;
     QPushButton *preview_button_;
+    QPushButton *rv_add_; // select route view add new route
+    QPushButton *sel_rv_remove_all_, *sel_rv_remove_; // select route view
+    QPushButton *rv_remove_all_, *rv_remove_;
+    QPushButton *rv_save_to_html_;
     map<int, MapAttribute> map_attr_;
     QFile qf_;
     QString points_;
@@ -113,6 +117,10 @@ class MainWindow : public QMainWindow
 
   public slots:
     void select_route_slot();
+    void rv_remove_all_slot();
+    void rv_remove_slot();
+    void sel_rv_remove_all_slot();
+    void sel_rv_remove_slot();
     void open_color_dialog(QTreeWidgetItem * item, int column);
     void open_color_dialog();
     void load_gpx_attr(int index);

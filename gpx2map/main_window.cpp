@@ -1351,8 +1351,21 @@ void MainWindow::create_form_groupbox()
   route_view_->setHeaderLabels(labels);
   route_view_->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
+  QBoxLayout *v_layout = new QBoxLayout(QBoxLayout::TopToBottom);
+
+  layout->addLayout(v_layout);
+
+  rv_add_ = new QPushButton(tr("add gpx files"));
+  v_layout->addWidget(rv_add_);
+
+  rv_remove_all_ = new QPushButton(tr("remove all"));
+  v_layout->addWidget(rv_remove_all_);
+
+  rv_remove_ = new QPushButton(tr("remove select route"));
+  v_layout->addWidget(rv_remove_);
+
   select_route_button_ = new QPushButton(tr("select routes"));
-  layout->addWidget(select_route_button_);
+  v_layout->addWidget(select_route_button_);
 
 
   //QTreeWidgetItem *item = new QTreeWidgetItem(route_view_);
@@ -1364,9 +1377,24 @@ void MainWindow::create_form_groupbox()
   select_route_view_->setSelectionMode(QAbstractItemView::ExtendedSelection);
   layout->addWidget(select_route_view_);
 
-  preview_button_ = new QPushButton(tr("preview"));
-  layout->addWidget(preview_button_);
+  QBoxLayout *v_layout1 = new QBoxLayout(QBoxLayout::TopToBottom);
 
+  layout->addLayout(v_layout1);
+
+  v_layout1->addWidget(new QLabel(tr("google map key")));
+  v_layout1->addWidget(google_map_key_);
+
+  sel_rv_remove_all_ = new QPushButton(tr("remove all"));
+  v_layout1->addWidget(sel_rv_remove_all_);
+
+  sel_rv_remove_ = new QPushButton(tr("remove select route"));
+  v_layout1->addWidget(sel_rv_remove_);
+
+  preview_button_ = new QPushButton(tr("preview"));
+  v_layout1->addWidget(preview_button_);
+
+  rv_save_to_html_ = new QPushButton(tr("save to html"));
+  v_layout1->addWidget(rv_save_to_html_);
 
 
   QObject::connect(files_, SIGNAL(currentIndexChanged ( int )), this, SLOT(select_gpx_file(int)));
@@ -1378,6 +1406,47 @@ void MainWindow::create_form_groupbox()
   QObject::connect(preview_button_, SIGNAL(pressed( )), this, SLOT(preview_without_save_slot()));
 
   QObject::connect(select_route_view_, SIGNAL(itemClicked ( QTreeWidgetItem * , int ) ), this, SLOT(open_color_dialog(QTreeWidgetItem * , int ) ));
+
+  QObject::connect(rv_remove_all_, SIGNAL(pressed( )), this, SLOT(rv_remove_all_slot()));
+  QObject::connect(sel_rv_remove_all_, SIGNAL(pressed( )), this, SLOT(sel_rv_remove_all_slot()));
+
+  QObject::connect(rv_remove_, SIGNAL(pressed( )), this, SLOT(rv_remove_slot()));
+  QObject::connect(sel_rv_remove_, SIGNAL(pressed( )), this, SLOT(sel_rv_remove_slot()));
+  QObject::connect(rv_add_, SIGNAL(pressed( )), this, SLOT(open_file_slot()));
+
+}
+
+void MainWindow::rv_remove_slot()
+{
+  //route_view_->clear();
+  QList<QTreeWidgetItem *> select_items=route_view_->selectedItems();
+  for (int i=0; i < select_items.count() ; ++i)
+  {
+    RouteItem *ri = (RouteItem*)select_items.at(i);
+    delete ri;
+  }
+
+}
+
+void MainWindow::sel_rv_remove_slot()
+{
+  //select_route_view_->takeTopLevelItem(0);
+  QList<QTreeWidgetItem *> select_items=select_route_view_->selectedItems();
+  for (int i=0; i < select_items.count() ; ++i)
+  {
+    RouteItem *ri = (RouteItem*)select_items.at(i);
+    delete ri;
+  }
+}
+
+void MainWindow::rv_remove_all_slot()
+{
+  route_view_->clear();
+}
+
+void MainWindow::sel_rv_remove_all_slot()
+{
+  select_route_view_->clear();
 }
 
 void MainWindow::select_route_slot()
