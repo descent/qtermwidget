@@ -1495,7 +1495,7 @@ void MainWindow::select_route_slot()
     item->setText(1, select_items.at(i)->text(1));
     item->set_attr(ri->get_attr());
     item->setFlags(item->flags() | Qt::ItemIsEditable);
-    //item->setText(0, "test");
+    item->update_text();
   }
   //select_route_view_->insertTopLevelItems(1, select_items);
 

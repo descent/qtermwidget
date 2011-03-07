@@ -35,6 +35,19 @@ class RouteItem: public QTreeWidgetItem
     {
       return attr_;
     }
+    void update_text()
+    {
+      setText(1, attr_.name);
+      QString hc;
+      bool qcolor2html_color_str(const QColor &qc, QString &html_color_str);
+
+      qcolor2html_color_str(attr_.qc, hc); 
+      setText(2, hc);
+
+      setForeground(2, attr_.qc);
+
+    }
+
 
   private:
     MapAttribute attr_;
