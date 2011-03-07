@@ -339,7 +339,8 @@ void MainWindow::about_slot()
   //msg+="\nmac osX"  ;
   msg.sprintf("mac osX %s\nQT version: %s", mac_version_str(), qVersion());
 #endif
-  //msg+=" version";
+  msg+="\nversion: $Rev$";
+
 
    // ref : Qt-4.6.2/examples/xml/dombookmarks/mainwindow.cpp
    QMessageBox::about(this, tr("About GPX2MAP"), msg);
