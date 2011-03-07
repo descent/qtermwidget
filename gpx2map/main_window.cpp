@@ -1343,7 +1343,7 @@ void MainWindow::create_form_groupbox()
   #endif
 
   //layout->addLayout(line_layout);
-  layout->addLayout(form_layout);
+  //layout->addLayout(form_layout);
 
 
   formGroupBox = new QGroupBox(tr("Select GPX Files"));
