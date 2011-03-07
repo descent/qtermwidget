@@ -74,6 +74,8 @@ class MainWindow : public QMainWindow
 
 
   private:
+    //QString preview_fn_;
+    //QByteArray template_data;
     QTreeWidget *route_view_, *select_route_view_;
     BrowserWindow *browser_;
     set<QString> parse_gpx_; // get track in these GPX files.
@@ -107,6 +109,7 @@ class MainWindow : public QMainWindow
     //vector<FileTrkAttr*> file_trk_attr_;
     map<QString, FileTrkAttr*> file_trk_attr_;
 
+    void create_html_file(QByteArray &template_data);
     void fill_data(int offset=0x4e10);
     int write_to_save_file(const QString &w_fn);
     void open_cfg();
@@ -116,6 +119,7 @@ class MainWindow : public QMainWindow
     void closeEvent ( QCloseEvent * event );
 
   public slots:
+    void rv_save_to_html_slot();
     void select_route_slot();
     void rv_remove_all_slot();
     void rv_remove_slot();

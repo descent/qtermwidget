@@ -813,7 +813,7 @@ void MainWindow::get_trk_points(QDomNode &n, const QString &tag_name, QString &p
   return;
 }
 
-void MainWindow::preview_without_save_slot()
+void MainWindow::create_html_file(QByteArray &template_data)
 {
   QString write_trk;
   QList<QTreeWidgetItem *> select_items=select_route_view_->selectedItems();
@@ -872,7 +872,7 @@ void MainWindow::preview_without_save_slot()
 
     return;
   }
-  QByteArray template_data=template_file.readAll();
+  template_data=template_file.readAll();
   int pos=0;
 
   // replace ##, center point
@@ -890,33 +890,42 @@ void MainWindow::preview_without_save_slot()
   //template_data.replace(pos, 2, points_.toAscii());
   template_data.replace(pos, 2, write_trk.toUtf8());
   template_file.close();
+  //qDebug() << "template_data: " << template_data;
+}
 
+void MainWindow::preview_without_save_slot()
+{
+  QByteArray template_data;
+  create_html_file(template_data);
+
+  //qDebug() << "xx template_data: " << template_data;
   QFile temp_qf;
-  QString preview_fn = QFSFileEngine::tempPath() + "/t_view.html";
+  preview_fn_ = QFSFileEngine::tempPath() + "/t_view.html";
 
-  temp_qf.setFileName(preview_fn);
+  temp_qf.setFileName(preview_fn_);
   if (!temp_qf.open(QIODevice::WriteOnly))
   {
     QMessageBox::warning(this, tr("gpx2map"),
                              tr("Cannot save temp file %1:\n%2.")
-                             .arg(preview_fn)
+                             .arg(preview_fn_)
                              .arg(temp_qf.errorString()));
 
     return;
   }
   int w_len=temp_qf.write(template_data);
+  qDebug() << "w_len: " << w_len;
 
 #ifdef Q_OS_WIN32
-  preview_fn.prepend("file:///");
+  preview_fn_.prepend("file:///");
 #else
-  preview_fn.prepend("file://");
+  preview_fn_.prepend("file://");
 #endif
-  qDebug() << "preview_fn : " << preview_fn;
+  qDebug() << "preview_fn_ : " << preview_fn_;
   if (browser_==0)
-    browser_ = new BrowserWindow(preview_fn);
+    browser_ = new BrowserWindow(preview_fn_);
   else
   {
-    browser_->load(preview_fn);
+    browser_->load(preview_fn_);
   }
   browser_->show();
 
@@ -1413,6 +1422,31 @@ void MainWindow::create_form_groupbox()
   QObject::connect(rv_remove_, SIGNAL(pressed( )), this, SLOT(rv_remove_slot()));
   QObject::connect(sel_rv_remove_, SIGNAL(pressed( )), this, SLOT(sel_rv_remove_slot()));
   QObject::connect(rv_add_, SIGNAL(pressed( )), this, SLOT(open_file_slot()));
+
+  QObject::connect(rv_save_to_html_, SIGNAL(pressed( )), this, SLOT(rv_save_to_html_slot()));
+
+}
+
+void MainWindow::rv_save_to_html_slot()
+{
+  QFile temp_qf;
+  file_name_ = QFileDialog::getSaveFileName(this, tr("Save As"), save_dirname_);
+  if (file_name_=="") return;
+
+  QByteArray template_data;
+  create_html_file(template_data);
+
+  temp_qf.setFileName(file_name_);
+  if (!temp_qf.open(QIODevice::WriteOnly))
+  {
+    QMessageBox::warning(this, tr("gpx2map"),
+                             tr("Cannot save html file %1:\n%2.")
+                             .arg(file_name_)
+                             .arg(temp_qf.errorString()));
+
+    return;
+  }
+  int w_len=temp_qf.write(template_data);
 
 }
 
