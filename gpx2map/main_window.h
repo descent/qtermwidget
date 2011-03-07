@@ -81,7 +81,6 @@ class MainWindow : public QMainWindow
     set<QString> parse_gpx_; // get track in these GPX files.
     QStringList fn_list_;
     int previous_fn_index_;
-    QPushButton *color_button_;
     QPushButton *select_route_button_;
     QPushButton *preview_button_;
     QPushButton *rv_add_; // select route view add new route
@@ -92,7 +91,7 @@ class MainWindow : public QMainWindow
     QFile qf_;
     QString points_;
     QString center_point_;
-    QComboBox *files_, *track_list_;
+    //QComboBox *files_, *track_list_;
     QLineEdit *route_name_, *google_map_key_, *point_, *position_, *direction_;
     QGroupBox *formGroupBox;
     QMenu *file_menu_, *edit_menu_, *help_menu_;

@@ -353,6 +353,7 @@ void MainWindow::about_slot()
 
 FileTrkAttr* MainWindow::get_cur_file_trk_attr()
 {
+#if 0
   //FileTrkAttr* cur_file_trk_attr = 0;
   if (file_trk_attr_.count(dirname_ + "/" + files_->currentText()))
   {
@@ -363,6 +364,7 @@ FileTrkAttr* MainWindow::get_cur_file_trk_attr()
   {
     return 0;
   }
+#endif
 }
 
 void MainWindow::get_trk(const QString &fn, int index)
@@ -397,8 +399,8 @@ void MainWindow::get_trk(const QString &fn, int index)
   if (tag_name=="trkpt")
     trk_name="trk";
 
-  QObject::disconnect(track_list_, SIGNAL(currentIndexChanged ( int )), this, SLOT(load_gpx_attr(int)));
-  track_list_->clear();
+  //QObject::disconnect(track_list_, SIGNAL(currentIndexChanged ( int )), this, SLOT(load_gpx_attr(int)));
+  //track_list_->clear();
   QDomNodeList node_list=doc.elementsByTagName(trk_name);
 
   FileTrkAttr* cur_file_trk_attr = 0;
@@ -427,7 +429,7 @@ void MainWindow::get_trk(const QString &fn, int index)
       if(!e.isNull()) 
       {
         //cout << qPrintable(e.tagName()) << endl; // the node really is an element.
-        track_list_->addItem(trk_attr.name);
+        //track_list_->addItem(trk_attr.name);
         //trk_attr.name=e.text();
 	//qDebug() << e.text();
         trk_attr.color=color_index_%(sizeof(colors)/sizeof(char*));
@@ -462,7 +464,7 @@ void MainWindow::get_trk(const QString &fn, int index)
     //get_trk_points(n.firstChild(), tag_name);
   }
 
-  QObject::connect(track_list_, SIGNAL(currentIndexChanged ( int )), this, SLOT(load_gpx_attr(int)));
+  //QObject::connect(track_list_, SIGNAL(currentIndexChanged ( int )), this, SLOT(load_gpx_attr(int)));
   unsetCursor();
   parse_gpx_.insert(fn);
 
@@ -495,7 +497,7 @@ void MainWindow::get_trk_info(QDomNode &n, const QString &tag_name)
       if (e.tagName()=="name")
       {
         //cout << qPrintable(e.text()) << endl; // the node really is an element.
-        track_list_->addItem(e.text());
+        //track_list_->addItem(e.text());
       }
 
 
@@ -559,8 +561,8 @@ void MainWindow::open_file_slot()
 
   color_index_ = 1;
 
-  QObject::disconnect(files_, SIGNAL(currentIndexChanged ( int )), this, SLOT(select_gpx_file(int)));
-  files_->clear();
+  //QObject::disconnect(files_, SIGNAL(currentIndexChanged ( int )), this, SLOT(select_gpx_file(int)));
+  //files_->clear();
 
   QString fn;
 
@@ -573,20 +575,13 @@ void MainWindow::open_file_slot()
   }
 #endif
 
-  // need free file_trk_attr_[0] ... file_trk_attr_[size-1] FileTrkAttr
-  // then call clear() to clear all map element.
-  // If don't do this, will get memory leak issue.
-  map<QString, FileTrkAttr*>::iterator it;
-  for (it = file_trk_attr_.begin() ; it != file_trk_attr_.end() ; ++it)
-    delete it->second; 
-  file_trk_attr_.clear();
 
   for (int i=0 ; i < fn_list_.length() ; ++i)
   {
     fn=fn_list_.at(i);
     file_trk_attr_[fn]=new FileTrkAttr;
     basename_=fn.right(fn.size()-fn.lastIndexOf('/')-1);
-    files_->addItem(basename_);
+    //files_->addItem(basename_);
 
     MapAttribute map_attr;
     map_attr.name=basename_;
@@ -595,31 +590,13 @@ void MainWindow::open_file_slot()
   }
   parse_gpx_.clear();
   dirname_=fn.left(fn.lastIndexOf("/"));
-  QObject::connect(files_, SIGNAL(currentIndexChanged ( int )), this, SLOT(select_gpx_file(int)));
+  //QObject::connect(files_, SIGNAL(currentIndexChanged ( int )), this, SLOT(select_gpx_file(int)));
 
   get_trk(fn_list_.at(0), 0); // get the first file all trk name
-
-  FileTrkAttr *first_file_trk_attr = 0;
-#if 0
-  if (file_trk_attr_.count(dirname_ + "/" + files_->itemText(0)))
-    first_file_trk_attr = file_trk_attr_[(dirname_ + "/" + files_->itemText(0))];
-#else
-  if (file_trk_attr_.count(fn_list_.at(0)))
-    first_file_trk_attr = file_trk_attr_[fn_list_.at(0)];
-#endif
-
-  if (first_file_trk_attr)
-  {
-    //qDebug() << "asd;" << (*first_file_trk_attr)[0].name;
-    route_name_->setText((*first_file_trk_attr)[0].name);
-  }
-
-
 
   text_edit_->clear();
   e.setAttribute("path", dirname_);
   statusBar()->showMessage(tr("open"));
-  color_button_->setEnabled(true);
 }
 
 QString MainWindow::check_gpx_type(const QDomDocument &dom_doc)
@@ -832,6 +809,7 @@ void MainWindow::create_html_file(QByteArray &template_data)
     trk_segments[t] = [];").arg(t).arg(trk_attr.name).arg(hc);
 	qDebug() << "trk_attr.points: " << trk_attr.points;
 
+      trk_attr.points.remove(trk_attr.points.length()-1, 1);
       write_trk += "trk_segments[t].push({points:[" + trk_attr.points + \
 	            QString("]}); \
                 \nGV_Draw_Track(t); \
@@ -979,7 +957,7 @@ int MainWindow::write_to_save_file(const QString &w_fn)
 
   qDebug() << "w_fn: " << w_fn;
   // update FileTrkAttr
-  load_gpx_attr(track_list_->currentIndex());
+  //load_gpx_attr(track_list_->currentIndex());
 
   // save map attribute, in the place should do the action,
   // because files_ doesn't single the currentIndexChanged(int), files_ will not recode 
@@ -1165,8 +1143,10 @@ void MainWindow::change_save_file_offset ( int index )
 
 void MainWindow::select_gpx_file(int index)
 {
+#if 0
   get_trk(dirname_ + "/" + files_->itemText(index), index); // get the first file all trk name
   formGroupBox->setTitle(files_->currentText());
+#endif
 }
 
 void MainWindow::load_gpx_attr(int index)
@@ -1177,7 +1157,7 @@ void MainWindow::load_gpx_attr(int index)
   if (index < 0)
     return;
 
-  FileTrkAttr* cur_file_trk_attr = file_trk_attr_[dirname_ + "/" + files_->currentText()];
+  //FileTrkAttr* cur_file_trk_attr = file_trk_attr_[dirname_ + "/" + files_->currentText()];
   //qDebug() << "cur_file_trk_attr->size(): " << cur_file_trk_attr->size();
   //qDebug() << "cur_file_trk_attr:" << cur_file_trk_attr;
 
@@ -1195,11 +1175,11 @@ void MainWindow::load_gpx_attr(int index)
 #else
 
   //qDebug() << (*cur_file_trk_attr)[index].name;
-  MapAttribute trk_attr = cur_file_trk_attr->at(index);
+  //MapAttribute trk_attr = cur_file_trk_attr->at(index);
 
   //qDebug() << "(*cur_file_trk_attr)[index].name:" << (*cur_file_trk_attr)[index].name;
-  (*cur_file_trk_attr)[previous_fn_index_].name = route_name_->text();
-  route_name_->setText((*cur_file_trk_attr)[index].name);
+  //(*cur_file_trk_attr)[previous_fn_index_].name = route_name_->text();
+  //route_name_->setText((*cur_file_trk_attr)[index].name);
 #endif
   //map_attr.color=color_combobox_->currentText();
   //map_attr_[previous_fn_index_]=map_attr;
@@ -1447,6 +1427,7 @@ void MainWindow::modify_route_name_slot(QTreeWidgetItem * item, int column)
 
 void MainWindow::open_color_dialog()
 {
+#if 0
   FileTrkAttr* file_trk_attr=get_cur_file_trk_attr();
   QColor qc = QColorDialog::getColor((*file_trk_attr)[track_list_->currentIndex()].qc, this);
   if (qc.isValid())
@@ -1458,7 +1439,7 @@ void MainWindow::open_color_dialog()
     //color_button_->setPalette(qc);
     //color_button_->setBackgroundRole(qc);
   }
-
+#endif
 
 }
 
