@@ -394,6 +394,7 @@ void MainWindow::get_wpt(const QDomNode &node, WptAttribute &wpt_attr)
       else
       {
         qDebug() << e.text();
+	wpt_attr[e.tagName()]=e.text();
       }
 
     }
@@ -557,12 +558,17 @@ void MainWindow::get_trk(const QString &fn, int index)
   // get wpt data
   node_list=doc.elementsByTagName("wpt");
   qDebug() << "get wpt data";
-  WptAttribute wpt_attr;
   for (int i=0 ; i < node_list.size() ; ++i)
   {
+    WptAttribute wpt_attr;
     //QDomNode n = node_list.at(i).firstChild();
     QDomNode n = node_list.at(i);
     get_wpt(n, wpt_attr);
+
+    RouteItem *item = new RouteItem(route_view_);
+    item->set_wpt_attr(wpt_attr);
+    item->setText(0, QString("%1").arg(i));
+    item->setText(1, wpt_attr["name"]);
   }
 
 

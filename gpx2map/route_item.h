@@ -73,10 +73,15 @@ class RouteItem: public QTreeWidgetItem
       setForeground(SEL_RV_COLOR, attr_.qc);
 
     }
+    void set_wpt_attr(const WptAttribute& wpt_attr)
+    {
+      wpt_attr_=wpt_attr;
+    }
 
 
   private:
     MapAttribute attr_;
+    WptAttribute wpt_attr_;
 };
 #endif
 
