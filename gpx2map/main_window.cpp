@@ -70,6 +70,8 @@ const QString config_fn="/.gpx2map.cfg";
 #endif
 
 
+//enum {RV_NO=0, RV_OR, RV_F, RV_ATTR};
+//enum {SEL_RV_NO=0, SEL_RV_OR, SEL_RV_MRN, SEL_RV_COLOR, SEL_RV_FILE, SEL_RV_ATTR};
 
 const char *colors[]=
 {
@@ -104,7 +106,7 @@ bool qcolor2html_color_str(const QColor &qc, QString &html_color_str)
   return true;
 }
 
-MainWindow::MainWindow():QMainWindow(), previous_fn_index_(0), browser_(0)
+MainWindow::MainWindow():QMainWindow(), browser_(0)
 { 
   setWindowIcon(QIcon(":/images/window_icon.png"));
   open_cfg();
@@ -144,6 +146,7 @@ MainWindow::MainWindow():QMainWindow(), previous_fn_index_(0), browser_(0)
 
   qDebug() << "QDir::currentPath(): " << QDir::currentPath();
   qDebug() << "QDir::homePath(): " << QDir::homePath();
+  route_attr_ = new QTextEdit();
 }
 
 void MainWindow::closeEvent ( QCloseEvent * event )
@@ -417,6 +420,8 @@ void MainWindow::get_trk(const QString &fn, int index)
   for (int i=0 ; i < node_list.size() ; ++i)
   {
     MapAttribute trk_attr;
+
+    trk_attr.type=trk_name;
     QDomNode n = node_list.at(i).firstChild();
     //QDomNode node = e.firstChild();
 
@@ -439,7 +444,7 @@ void MainWindow::get_trk(const QString &fn, int index)
 	if (trk_attr.name=="")
 	  trk_attr.name="noname";
 
-        item->setText(0, trk_attr.name);
+        item->setText(0, QString("%1").arg(i));
         item->setText(1, trk_attr.name);
 	QFileInfo fi(fn);
         item->setText(3, fi.fileName());
@@ -959,12 +964,6 @@ int MainWindow::write_to_save_file(const QString &w_fn)
   // update FileTrkAttr
   //load_gpx_attr(track_list_->currentIndex());
 
-  // save map attribute, in the place should do the action,
-  // because files_ doesn't single the currentIndexChanged(int), files_ will not recode 
-  // the gpx attritube
-  MapAttribute map_attr;
-  map_attr.name=route_name_->text();
-  map_attr_[previous_fn_index_]=map_attr;
 
   points_ = "";
 
@@ -1149,73 +1148,6 @@ void MainWindow::select_gpx_file(int index)
 #endif
 }
 
-void MainWindow::load_gpx_attr(int index)
-{
-  //qDebug() << "index: " << index;
-  //qDebug() << "files_->currentIndex(): " << files_->currentIndex();
-  //qDebug() << "file_trk_attr_.size(): " << file_trk_attr_.size();
-  if (index < 0)
-    return;
-
-  //FileTrkAttr* cur_file_trk_attr = file_trk_attr_[dirname_ + "/" + files_->currentText()];
-  //qDebug() << "cur_file_trk_attr->size(): " << cur_file_trk_attr->size();
-  //qDebug() << "cur_file_trk_attr:" << cur_file_trk_attr;
-
-  //get_trk(dirname_ + "/" + files_->itemText(index), index); // get the first file all trk name
-
-  //MapAttribute map_attr;
-
-
-#if 0
-  // save map attribute
-  //map_attr.name=route_name_->text();
-  (*cur_file_trk_attr)[index].name = route_name_->text();
-
-  (*cur_file_trk_attr)[index].color = color_combobox_->currentIndex();
-#else
-
-  //qDebug() << (*cur_file_trk_attr)[index].name;
-  //MapAttribute trk_attr = cur_file_trk_attr->at(index);
-
-  //qDebug() << "(*cur_file_trk_attr)[index].name:" << (*cur_file_trk_attr)[index].name;
-  //(*cur_file_trk_attr)[previous_fn_index_].name = route_name_->text();
-  //route_name_->setText((*cur_file_trk_attr)[index].name);
-#endif
-  //map_attr.color=color_combobox_->currentText();
-  //map_attr_[previous_fn_index_]=map_attr;
-
-#if 0
-  // load current index map attribute
-  if (map_attr_.count(index))
-  {
-    route_name_->setText(map_attr_[index].name);
-    color_combobox_->setCurrentIndex(map_attr_[index].color);
-    //color_combobox_->setItemText(previous_fn_index_, map_attr_[index].color);
-  }
-  else
-  { // not yet set map attribute
-    route_name_->setText("");
-    color_combobox_->setCurrentIndex(0);
-    //color_combobox_->setCurrentText("#800080");
-    //color_combobox_->setItemText(0, "#E60000");
-  }
-#endif
-
-  previous_fn_index_ = index;
-
-#if 0
-  if (index > map_attr_.length())
-  { // add new map_attr
-
-  }
-  else
-  { // edit old map_attr
-
-  }
-  MapAttribute map_attr;
-#endif
-
-}
 
 // copy from: 
 //      /usr/local/Trolltech/Qt-4.6.2/examples/layouts/basiclayouts/dialog.cpp
@@ -1243,7 +1175,7 @@ void MainWindow::create_form_groupbox()
   route_view_ = new QTreeWidget(this);
   layout->addWidget(route_view_);
   QStringList labels;
-  labels << tr("origianl route name") << tr("modified route name") << tr("route color") << tr("file");
+  labels << tr("No") << tr("route name") << tr("route color") << tr("file");
   route_view_->setHeaderLabels(labels);
   route_view_->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
@@ -1269,6 +1201,8 @@ void MainWindow::create_form_groupbox()
   //item->setText(1, "route color 1");
   select_route_view_ = new QTreeWidget(this);
   //select_route_view_->setSelectionMode(QAbstractItemView::MultiSelection);
+  labels.clear();
+  labels << tr("No") << tr("route name") << tr("modified route name") << tr("route color") << tr("file") << tr("attr");
   select_route_view_->setHeaderLabels(labels);
   select_route_view_->setSelectionMode(QAbstractItemView::ExtendedSelection);
   layout->addWidget(select_route_view_);
@@ -1385,8 +1319,9 @@ void MainWindow::select_route_slot()
   {
     RouteItem *ri = (RouteItem*)select_items.at(i);
     RouteItem *item = new RouteItem(select_route_view_);
-    item->setText(0, select_items.at(i)->text(0));
+    item->setText(0, QString("%1").arg(i));
     item->setText(1, select_items.at(i)->text(1));
+    item->setText(2, select_items.at(i)->text(1));
     item->set_attr(ri->get_attr());
     item->setFlags(item->flags() | Qt::ItemIsEditable);
     item->update_text();
@@ -1402,11 +1337,24 @@ void MainWindow::select_route_slot()
 
 void MainWindow::open_color_dialog(QTreeWidgetItem * item, int column)
 {
-  if (column != 2) return;
-
   RouteItem *ri=0;
   if (item)
     ri = (RouteItem*)item;
+
+  if (column == SEL_RV_ATTR)
+  {
+    MapAttribute ra = ri->get_attr();
+    route_attr_->clear();
+    route_attr_->setWindowTitle(ri->text(SEL_RV_MRN));
+    route_attr_->insertPlainText(ra.type);
+    route_attr_->insertPlainText("\n");
+    route_attr_->insertPlainText(ra.points);
+    route_attr_->show();
+
+    return;
+  }
+
+  if (column != SEL_RV_COLOR) return;
 
   QColor qc = QColorDialog::getColor(ri->get_qc(), this);
   if (qc.isValid())
@@ -1414,8 +1362,8 @@ void MainWindow::open_color_dialog(QTreeWidgetItem * item, int column)
     ri->set_qc(qc);
     QString hc;
     qcolor2html_color_str(qc, hc);
-    ri->setText(2, hc);
-    ri->setForeground(2, qc);
+    ri->setText(SEL_RV_COLOR, hc);
+    ri->setForeground(SEL_RV_COLOR, qc);
     qDebug() << "hc:" << hc;
     //(*file_trk_attr)[track_list_->currentIndex()].qc=qc;
     //color_button_->setPalette(qc);
@@ -1436,23 +1384,6 @@ void MainWindow::modify_route_name_slot(QTreeWidgetItem * item, int column)
 
 }
 
-void MainWindow::open_color_dialog()
-{
-#if 0
-  FileTrkAttr* file_trk_attr=get_cur_file_trk_attr();
-  QColor qc = QColorDialog::getColor((*file_trk_attr)[track_list_->currentIndex()].qc, this);
-  if (qc.isValid())
-  {
-    QString hc;
-    qcolor2html_color_str(qc, hc);
-    qDebug() << "hc:" << hc;
-    (*file_trk_attr)[track_list_->currentIndex()].qc=qc;
-    //color_button_->setPalette(qc);
-    //color_button_->setBackgroundRole(qc);
-  }
-#endif
-
-}
 
 void MainWindow::show_debug_log_slot()
 {

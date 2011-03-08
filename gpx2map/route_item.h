@@ -3,6 +3,10 @@
 
 #include <QTreeWidgetItem>
 
+enum {RV_NO=0, RV_OR, RV_F, RV_ATTR};
+enum {SEL_RV_NO=0, SEL_RV_OR, SEL_RV_MRN, SEL_RV_COLOR, SEL_RV_FILE, SEL_RV_ATTR};
+
+
 struct MapAttribute
 {
   QString name, desc, clickable, width, opacity;
@@ -10,6 +14,7 @@ struct MapAttribute
   int color; // a index, not color number
   QColor qc;
   QString points;
+  QString type;
 };
 
 
@@ -48,9 +53,8 @@ class RouteItem: public QTreeWidgetItem
       bool qcolor2html_color_str(const QColor &qc, QString &html_color_str);
 
       qcolor2html_color_str(attr_.qc, hc); 
-      setText(2, hc);
-
-      setForeground(2, attr_.qc);
+      setText(SEL_RV_COLOR, hc);
+      setForeground(SEL_RV_COLOR, attr_.qc);
 
     }
 

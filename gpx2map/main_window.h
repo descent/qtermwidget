@@ -62,6 +62,7 @@ class MainWindow : public QMainWindow
     void create_form_groupbox();
     void backup_file();
     QTextEdit *text_edit_;
+    QTextEdit *route_attr_;
     void search_all(QDomNode &n, const QString &tag_name);
     void get_trk_points(QDomNode &n, const QString &tag_name, QString &points);
     void get_trk_name(QDomNode &node, QString &trk_name);
@@ -80,7 +81,6 @@ class MainWindow : public QMainWindow
     BrowserWindow *browser_;
     set<QString> parse_gpx_; // get track in these GPX files.
     QStringList fn_list_;
-    int previous_fn_index_;
     QPushButton *select_route_button_;
     QPushButton *preview_button_;
     QPushButton *rv_add_; // select route view add new route
@@ -125,8 +125,6 @@ class MainWindow : public QMainWindow
     void sel_rv_remove_all_slot();
     void sel_rv_remove_slot();
     void open_color_dialog(QTreeWidgetItem * item, int column);
-    void open_color_dialog();
-    void load_gpx_attr(int index);
     void select_gpx_file(int index);
     void open_file_slot();
     void save_file_slot();
