@@ -1312,9 +1312,18 @@ void MainWindow::create_form_groupbox()
 
 void MainWindow::rv_save_to_html_slot()
 {
-  QFile temp_qf;
+  QDomNodeList nodes=dom_doc_.elementsByTagName("save_file_path");
+  QDomElement e = nodes.at(0).toElement(); // try to convert the node to an element.
+
+  if (save_dirname_.isNull())
+  {
+    save_dirname_= e.attribute("path");
+  }
   file_name_ = QFileDialog::getSaveFileName(this, tr("Save As"), save_dirname_);
   if (file_name_=="") return;
+
+  QFile temp_qf;
+  //file_name_ = QFileDialog::getSaveFileName(this, tr("Save As"), save_dirname_);
 
   QByteArray template_data;
   create_html_file(template_data);
@@ -1331,6 +1340,8 @@ void MainWindow::rv_save_to_html_slot()
   }
   int w_len=temp_qf.write(template_data);
 
+  save_dirname_=file_name_.left(file_name_.lastIndexOf("/"));
+  e.setAttribute("path", save_dirname_);
 }
 
 void MainWindow::rv_remove_slot()
