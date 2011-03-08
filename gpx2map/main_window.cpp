@@ -370,6 +370,90 @@ FileTrkAttr* MainWindow::get_cur_file_trk_attr()
 #endif
 }
 
+void MainWindow::get_wpt(const QDomNode &node, WptAttribute &wpt_attr)
+{
+  QDomNode n = node;
+
+  //while(!n.isNull()) 
+  {
+
+    QString points;
+
+    QDomElement e = n.toElement(); // try to convert the node to an element.
+
+
+    if(!e.isNull()) 
+    {
+      qDebug() << "e.tagName() : " << e.tagName();
+      if (e.tagName()=="wpt")
+      {
+	points += ("[" + e.attribute("lat") + "," + e.attribute("lon") + "]");
+	qDebug() << points;
+	wpt_attr[e.tagName()]=points;
+      }
+      else
+      {
+        qDebug() << e.text();
+      }
+
+    }
+    else
+    {
+      return;
+    }
+
+    //get_wpt(n.firstChild());
+    n=n.firstChild();
+    if (!n.isNull())
+    {
+      get_wpt(n, wpt_attr);
+    }
+
+    while(1)
+    {
+    n=n.nextSibling();
+    if (!n.isNull())
+    {
+      get_wpt(n, wpt_attr);
+    }
+    else
+      break;
+
+    }
+
+
+#if 0
+    // get next node
+    n = n.firstChild();
+    while(!n.isNull()) 
+    {
+
+      QDomElement e = n.toElement(); // try to convert the node to an element.
+
+    if(!e.isNull()) 
+    {
+      qDebug() << "e.tagName() : " << e.tagName();
+      if (e.tagName()=="wpt")
+      {
+	points += ("[" + e.attribute("lat") + "," + e.attribute("lon") + "]");
+	qDebug() << points;
+      }
+      else
+      {
+        qDebug() << e.text();
+      }
+
+
+    }
+
+
+      n=n.nextSibling();
+
+    }
+#endif
+  }
+}
+
 void MainWindow::get_trk(const QString &fn, int index)
 {
   if (fn.isNull()) return;
@@ -469,7 +553,20 @@ void MainWindow::get_trk(const QString &fn, int index)
     //get_trk_points(n.firstChild(), tag_name);
   }
 
-  //QObject::connect(track_list_, SIGNAL(currentIndexChanged ( int )), this, SLOT(load_gpx_attr(int)));
+
+  // get wpt data
+  node_list=doc.elementsByTagName("wpt");
+  qDebug() << "get wpt data";
+  WptAttribute wpt_attr;
+  for (int i=0 ; i < node_list.size() ; ++i)
+  {
+    //QDomNode n = node_list.at(i).firstChild();
+    QDomNode n = node_list.at(i);
+    get_wpt(n, wpt_attr);
+  }
+
+
+
   unsetCursor();
   parse_gpx_.insert(fn);
 

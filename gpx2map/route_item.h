@@ -3,9 +3,25 @@
 
 #include <QTreeWidgetItem>
 
+#include <map>
+
 enum {RV_NO=0, RV_OR, RV_F, RV_ATTR};
 enum {SEL_RV_NO=0, SEL_RV_OR, SEL_RV_MRN, SEL_RV_COLOR, SEL_RV_FILE, SEL_RV_ATTR};
 
+
+typedef map<QString, QString> WptAttribute;
+
+#if 0
+struct WptAttribute
+{
+  QString name, desc, clickable, width, opacity;
+  QString outline_color, outline_width, fill_color, fill_opacity;
+  int color; // a index, not color number
+  QColor qc;
+  QString points;
+  QString type;
+};
+#endif
 
 struct MapAttribute
 {
