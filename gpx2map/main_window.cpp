@@ -893,7 +893,7 @@ void MainWindow::create_html_file(QByteArray &template_data)
     {
       WptAttribute wpt_attr=ri->get_wpt_attr();
 
-      write_trk += "GV_Draw_Marker({" + wpt_attr["wpt"] + ",name:'" + wpt_attr["name"]+ "',desc:'豐原市、 台中縣、 TWN',color:'',icon:''});";
+      write_trk += "GV_Draw_Marker({" + wpt_attr["wpt"] + ",name:'" + wpt_attr["name"]+ "',desc:'" + wpt_attr["desc"] +"',color:'',icon:''});";
     }
     else
     {
