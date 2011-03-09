@@ -384,16 +384,16 @@ void MainWindow::get_wpt(const QDomNode &node, WptAttribute &wpt_attr)
 
     if(!e.isNull()) 
     {
-      //qDebug() << "e.tagName() : " << e.tagName();
+      qDebug() << "e.tagName() : " << e.tagName();
       if (e.tagName()=="wpt")
       {
-	points += ("[" + e.attribute("lat") + "," + e.attribute("lon") + "]");
-	//qDebug() << points;
+	points += ("lat:" + e.attribute("lat") + ",lon:" + e.attribute("lon"));
+	qDebug() << points;
 	wpt_attr[e.tagName()]=points;
       }
       else
       {
-        //qDebug() << e.text();
+        qDebug() << e.text();
 	wpt_attr[e.tagName()]=e.text();
       }
 
@@ -888,23 +888,33 @@ void MainWindow::create_html_file(QByteArray &template_data)
   {
     RouteItem *ri = (RouteItem*)select_items.at(i);
 
+
+    if (ri->text(SEL_RV_ATTR)=="wpt")
+    {
+      WptAttribute wpt_attr=ri->get_wpt_attr();
+
+      write_trk += "GV_Draw_Marker({" + wpt_attr["wpt"] + ",name:'" + wpt_attr["name"]+ "',desc:'豐原市、 台中縣、 TWN',color:'',icon:''});";
+    }
+    else
+    {
       QString hc;
 
       MapAttribute trk_attr=ri->get_attr();
       qcolor2html_color_str(trk_attr.qc, hc);
-
       write_trk += QString("t = %1; trk_info[t] = []; \
-    trk_info[t]['name'] = '%2'; trk_info[t]['desc'] = ''; trk_info[t]['clickable'] = true; \
-    trk_info[t]['color'] = '%3'; trk_info[t]['width'] = 3; trk_info[t]['opacity'] = 0.8; \
-    trk_info[t]['outline_color'] = '#000000'; trk_info[t]['outline_width'] = 0; trk_info[t]['fill_color'] = '#E60000'; trk_info[t]['fill_opacity'] = 0; \
-    trk_segments[t] = [];").arg(t).arg(trk_attr.name).arg(hc);
-	qDebug() << "trk_attr.points: " << trk_attr.points;
+                            trk_info[t]['name'] = '%2'; trk_info[t]['desc'] = ''; trk_info[t]['clickable'] = true; \
+                            trk_info[t]['color'] = '%3'; trk_info[t]['width'] = 3; trk_info[t]['opacity'] = 0.8; \
+                            trk_info[t]['outline_color'] = '#000000'; trk_info[t]['outline_width'] = 0; trk_info[t]['fill_color'] = '#E60000'; trk_info[t]['fill_opacity'] = 0; \
+                            trk_segments[t] = [];").arg(t).arg(trk_attr.name).arg(hc);
 
       write_trk += "trk_segments[t].push({points:[" + trk_attr.points + \
 	            QString("]}); \
                 \nGV_Draw_Track(t); \
 	        t = %1; GV_Add_Track_to_Tracklist({bullet:'- ',name:trk_info[t]['name'],desc:trk_info[t]['desc'],color:trk_info[t]['color'],number:t});\n").arg(t);
       ++t;
+    }
+
+
 
   }
 
@@ -1400,6 +1410,18 @@ void MainWindow::select_route_slot()
 {
   qDebug() << "select route";
   QList<QTreeWidgetItem *> select_items=route_view_->selectedItems();
+  // if select no items, select all items
+  if (select_items.count()==0)
+  {
+    QTreeWidgetItemIterator it(route_view_);
+    while (*it) 
+    {
+      select_items.append(*it);
+      ++it;
+    }
+
+  }
+
   for (int i=0; i < select_items.count() ; ++i)
   {
     RouteItem *ri = (RouteItem*)select_items.at(i);
@@ -1409,16 +1431,19 @@ void MainWindow::select_route_slot()
     item->setText(2, select_items.at(i)->text(1));
     item->setText(SEL_RV_FILE, select_items.at(i)->text(RV_FILE));
     item->setText(SEL_RV_ATTR, select_items.at(i)->text(RV_ATTR));
-    item->set_attr(ri->get_attr());
+    if (ri->text(RV_ATTR)=="wpt")
+    {
+      item->set_wpt_attr(ri->get_wpt_attr());
+      //item->update_color(SEL_RV_COLOR);
+    }
+    else
+    {
+      item->set_attr(ri->get_attr());
+      item->update_text();
+    }
+
     item->setFlags(item->flags() | Qt::ItemIsEditable);
-    item->update_text();
   }
-  //select_route_view_->insertTopLevelItems(1, select_items);
-
-  //select_route_view_->addTopLevelItem(item);
-
-
-  //select_route_view_ = new QTreeWidget(this);
 
 }
 
@@ -1433,9 +1458,19 @@ void MainWindow::open_color_dialog(QTreeWidgetItem * item, int column)
     MapAttribute ra = ri->get_attr();
     route_attr_->clear();
     route_attr_->setWindowTitle(ri->text(SEL_RV_MRN));
-    route_attr_->insertPlainText(ra.type);
-    route_attr_->insertPlainText("\n");
-    route_attr_->insertPlainText(ra.points);
+    route_attr_->insertPlainText(ra.type+"\n");
+    //if (ra.type=="wpt")
+    if (ri->text(SEL_RV_ATTR)=="wpt")
+    {
+      WptAttribute wpt_attr=ri->get_wpt_attr();
+      qDebug() << "wpt_attr[wpt]: " << wpt_attr["wpt"];
+      qDebug() << "wpt_attr[name]: " << wpt_attr["name"];
+      route_attr_->insertPlainText("wpt\n");
+      route_attr_->insertPlainText(wpt_attr["wpt"]);
+    }else
+    {
+      route_attr_->insertPlainText(ra.points);
+    }
     route_attr_->show();
 
     return;
@@ -1461,12 +1496,15 @@ void MainWindow::modify_route_name_slot(QTreeWidgetItem * item, int column)
 {
   //qDebug() << "column:" << column;
   // update route name
-  if (column == 1)
+  if (column == SEL_RV_MRN)
   {
     RouteItem *ri=0;
     if (item)
       ri = (RouteItem*)item;
-    ri->set_rn(ri->text(1));
+    if (ri->text(SEL_RV_ATTR)=="wpt")
+      ri->set_wn(ri->text(SEL_RV_MRN));
+    else
+      ri->set_rn(ri->text(SEL_RV_MRN));
   }
 
 }

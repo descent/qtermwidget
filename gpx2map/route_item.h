@@ -87,6 +87,17 @@ class RouteItem: public QTreeWidgetItem
     {
       wpt_attr_=wpt_attr;
     }
+    const WptAttribute& get_wpt_attr() const
+    {
+      return wpt_attr_;
+    }
+
+    // set waypoint name
+    void set_wn(const QString &n)
+    {
+      wpt_attr_["name"]=n;
+    }
+
 
 
   private:
