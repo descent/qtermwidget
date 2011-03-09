@@ -384,16 +384,16 @@ void MainWindow::get_wpt(const QDomNode &node, WptAttribute &wpt_attr)
 
     if(!e.isNull()) 
     {
-      qDebug() << "e.tagName() : " << e.tagName();
+      //qDebug() << "e.tagName() : " << e.tagName();
       if (e.tagName()=="wpt")
       {
 	points += ("[" + e.attribute("lat") + "," + e.attribute("lon") + "]");
-	qDebug() << points;
+	//qDebug() << points;
 	wpt_attr[e.tagName()]=points;
       }
       else
       {
-        qDebug() << e.text();
+        //qDebug() << e.text();
 	wpt_attr[e.tagName()]=e.text();
       }
 
@@ -482,82 +482,72 @@ void MainWindow::get_trk(const QString &fn, int index)
 
   QString tag_name=check_gpx_type(doc);
   QString trk_name;
-  if (tag_name=="rtept")
-    trk_name="rte";
-  if (tag_name=="trkpt")
-    trk_name="trk";
 
-  //QObject::disconnect(track_list_, SIGNAL(currentIndexChanged ( int )), this, SLOT(load_gpx_attr(int)));
-  //track_list_->clear();
-  QDomNodeList node_list=doc.elementsByTagName(trk_name);
 
-  FileTrkAttr* cur_file_trk_attr = 0;
-  if (file_trk_attr_.count(fn))
+  if ((tag_name=="rtept") || (tag_name=="trkpt"))
   {
-    cur_file_trk_attr = file_trk_attr_[fn];
-  }
-  else
-  {
-  }
+    if (tag_name=="rtept")
+      trk_name="rte";
+    if (tag_name=="trkpt")
+      trk_name="trk";
 
-  QStringList color_name=QColor::colorNames();
-  cur_file_trk_attr->clear();
-  for (int i=0 ; i < node_list.size() ; ++i)
-  {
-    MapAttribute trk_attr;
+    QDomNodeList node_list=doc.elementsByTagName(trk_name);
+    qDebug() << "trk_name: " << trk_name;
+  
+    QStringList color_name=QColor::colorNames();
+    int item_count=route_view_->topLevelItemCount();
 
-    trk_attr.type=trk_name;
-    QDomNode n = node_list.at(i).firstChild();
-    //QDomNode node = e.firstChild();
-
-    get_trk_name(n, trk_attr.name);
-    qDebug() << "trk_attr.name: " << trk_attr.name;
-
-    if(!n.isNull()) 
+    for (int i=0 ; i < node_list.size() ; ++i)
     {
-      QDomElement e = n.toElement(); // try to convert the node to an element.
-      if(!e.isNull()) 
+      MapAttribute trk_attr;
+  
+      trk_attr.type=trk_name;
+      QDomNode n = node_list.at(i).firstChild();
+      //QDomNode node = e.firstChild();
+  
+      get_trk_name(n, trk_attr.name);
+      qDebug() << "trk_attr.name: " << trk_attr.name;
+  
+      if(!n.isNull()) 
       {
-        //cout << qPrintable(e.tagName()) << endl; // the node really is an element.
-        //track_list_->addItem(trk_attr.name);
-        //trk_attr.name=e.text();
-	//qDebug() << e.text();
-        trk_attr.color=color_index_%(sizeof(colors)/sizeof(char*));
-        trk_attr.qc=color_name.at((color_index_+color_name.size())%color_name.size());
-
-        RouteItem *item = new RouteItem(route_view_);
-	if (trk_attr.name=="")
-	  trk_attr.name="noname";
-
-        item->setText(0, QString("%1").arg(i));
-        item->setText(1, trk_attr.name);
-	QFileInfo fi(fn);
-        item->setText(3, fi.fileName());
-	//route_view_->editItem(item, 1);
-	//item->setFlags(item->flags() | Qt::ItemIsEditable);
-
-        //item->setText(1, "route color 1");
-
-	//qDebug() << "(color_index_+color_name.size())%color_name.size(): " << (color_index_+color_name.size())%color_name.size();
-	//qDebug() << "color_name.size(): " << color_name.size();
-	//qDebug() << "color_index_:" << color_index_;
-	color_index_+=19;
-
-	// current code, points will do many copy time.
-        get_trk_points(n, tag_name, trk_attr.points);
-	//qDebug() << "trk_attr.points: " << trk_attr.points;
-        cur_file_trk_attr->push_back(trk_attr);
-
-	item->set_attr(trk_attr);
+        QDomElement e = n.toElement(); // try to convert the node to an element.
+        if(!e.isNull()) 
+        {
+          //cout << qPrintable(e.tagName()) << endl; // the node really is an element.
+          //track_list_->addItem(trk_attr.name);
+          //trk_attr.name=e.text();
+  	//qDebug() << e.text();
+          trk_attr.color=color_index_%(sizeof(colors)/sizeof(char*));
+          trk_attr.qc=color_name.at((color_index_+color_name.size())%color_name.size());
+  
+          RouteItem *item = new RouteItem(route_view_);
+  	  if (trk_attr.name=="")
+  	    trk_attr.name="noname";
+  
+          item->setText(RV_NO, QString("%1").arg(item_count+i));
+          item->setText(RV_OR, trk_attr.name);
+          item->setText(RV_ATTR, trk_name);
+  	  QFileInfo fi(fn);
+          item->setText(RV_FILE, fi.fileName());
+  	  color_index_+=19;
+  
+  	  // current code, points will do many copy time.
+          get_trk_points(n, tag_name, trk_attr.points);
+          trk_attr.points.remove(trk_attr.points.length()-1, 1); // remove last ,
+  
+  	  item->set_attr(trk_attr);
+          item->update_color(RV_COLOR);
+        }
       }
+      //get_trk_points(n.firstChild(), tag_name);
     }
-    //get_trk_points(n.firstChild(), tag_name);
-  }
 
+  } // end if ((tag_name=="rtept") || (tag_name=="trkpt"))
 
   // get wpt data
-  node_list=doc.elementsByTagName("wpt");
+  QDomNodeList node_list=doc.elementsByTagName("wpt");
   qDebug() << "get wpt data";
+  int item_count=route_view_->topLevelItemCount();
   for (int i=0 ; i < node_list.size() ; ++i)
   {
     WptAttribute wpt_attr;
@@ -567,22 +557,15 @@ void MainWindow::get_trk(const QString &fn, int index)
 
     RouteItem *item = new RouteItem(route_view_);
     item->set_wpt_attr(wpt_attr);
-    item->setText(0, QString("%1").arg(i));
-    item->setText(1, wpt_attr["name"]);
+    item->setText(RV_NO, QString("%1").arg(item_count+i));
+    item->setText(RV_OR, wpt_attr["name"]);
+    item->setText(RV_ATTR, "wpt");
+    QFileInfo fi(fn);
+    item->setText(RV_FILE, fi.fileName());
   }
-
-
 
   unsetCursor();
   parse_gpx_.insert(fn);
-
-#if 0
-  QDomElement docElem = doc.documentElement();
-  QDomNode n = docElem.firstChild();
-
-  get_trk_info(n, tag_name);
-#endif
-
 }
 
 void MainWindow::get_trk_info(QDomNode &n, const QString &tag_name)
@@ -917,7 +900,6 @@ void MainWindow::create_html_file(QByteArray &template_data)
     trk_segments[t] = [];").arg(t).arg(trk_attr.name).arg(hc);
 	qDebug() << "trk_attr.points: " << trk_attr.points;
 
-      trk_attr.points.remove(trk_attr.points.length()-1, 1);
       write_trk += "trk_segments[t].push({points:[" + trk_attr.points + \
 	            QString("]}); \
                 \nGV_Draw_Track(t); \
@@ -1278,7 +1260,7 @@ void MainWindow::create_form_groupbox()
   route_view_ = new QTreeWidget(this);
   layout->addWidget(route_view_);
   QStringList labels;
-  labels << tr("No") << tr("route name") << tr("route color") << tr("file");
+  labels << tr("No") << tr("route name") << tr("route color") << tr("file") << tr("attr");
   route_view_->setHeaderLabels(labels);
   route_view_->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
@@ -1425,6 +1407,8 @@ void MainWindow::select_route_slot()
     item->setText(0, QString("%1").arg(i));
     item->setText(1, select_items.at(i)->text(1));
     item->setText(2, select_items.at(i)->text(1));
+    item->setText(SEL_RV_FILE, select_items.at(i)->text(RV_FILE));
+    item->setText(SEL_RV_ATTR, select_items.at(i)->text(RV_ATTR));
     item->set_attr(ri->get_attr());
     item->setFlags(item->flags() | Qt::ItemIsEditable);
     item->update_text();

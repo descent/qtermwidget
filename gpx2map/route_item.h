@@ -5,7 +5,7 @@
 
 #include <map>
 
-enum {RV_NO=0, RV_OR, RV_F, RV_ATTR};
+enum {RV_NO=0, RV_OR, RV_COLOR, RV_FILE, RV_ATTR}; // OR == original route name
 enum {SEL_RV_NO=0, SEL_RV_OR, SEL_RV_MRN, SEL_RV_COLOR, SEL_RV_FILE, SEL_RV_ATTR};
 
 
@@ -62,6 +62,16 @@ class RouteItem: public QTreeWidgetItem
     {
       return attr_;
     }
+    void update_color(int index)
+    {
+      QString hc;
+      bool qcolor2html_color_str(const QColor &qc, QString &html_color_str);
+
+      qcolor2html_color_str(attr_.qc, hc); 
+      setText(index, hc);
+      setForeground(index, attr_.qc);
+    }
+
     void update_text()
     {
       setText(1, attr_.name);
