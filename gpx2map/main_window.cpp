@@ -877,7 +877,15 @@ void MainWindow::create_html_file(QByteArray &template_data)
     {
       WptAttribute wpt_attr=ri->get_wpt_attr();
 
-      write_trk += "GV_Draw_Marker({" + wpt_attr["wpt"] + ",name:'" + wpt_attr["name"]+ "',desc:'" + wpt_attr["desc"] +"',color:'',icon:''});";
+      QString desc=wpt_attr["desc"];
+      qDebug() << "desc" << desc;
+      int pos=desc.indexOf("\n");
+
+      qDebug() << "yyy pos: " << pos;
+      // note: I don't know why use pos-1, pos-1 look like  the right return value of indexOf() , but pos should be the right position.
+      desc.replace(pos-1, sizeof("\n"), "<br>");
+      qDebug() << "xxx desc" << desc;
+      write_trk += "GV_Draw_Marker({" + wpt_attr["wpt"] + ",name:'" + wpt_attr["name"]+ "',desc:'" + desc +"',color:'',icon:''});";
     }
     else
     {
