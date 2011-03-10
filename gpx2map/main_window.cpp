@@ -69,23 +69,11 @@ const QString config_fn="\\.gpx2map.cfg";
 const QString config_fn="/.gpx2map.cfg";
 #endif
 
+#define DEBUG_LOG(str) \
+{ \
+  text_edit_->insertPlainText(str); \
+}
 
-//enum {RV_NO=0, RV_OR, RV_F, RV_ATTR};
-//enum {SEL_RV_NO=0, SEL_RV_OR, SEL_RV_MRN, SEL_RV_COLOR, SEL_RV_FILE, SEL_RV_ATTR};
-
-const char *colors[]=
-{
-  "#E60000",
-  "#00E675",
-  "#0000A0", // Dark Blue 	
-  "#FF0080", // Light Purple 	
-  "#FFFF00", // Yellow	
-  "#00FF00", // Pastel Green	
-  "#0000FF", // Light Blue	
-  "#FF00FF", // Pink	
-  "#800080", // Dark Purple 	
-  "#FFFFFF", //White	
-};
 #define ADD_ACTION(menu, qa_obj, qa_name, slot) \
 { \
   qa_obj = new QAction(tr(qa_name), this); \
@@ -517,7 +505,7 @@ void MainWindow::get_trk(const QString &fn, int index)
           //track_list_->addItem(trk_attr.name);
           //trk_attr.name=e.text();
   	//qDebug() << e.text();
-          trk_attr.color=color_index_%(sizeof(colors)/sizeof(char*));
+          //trk_attr.color=color_index_%(sizeof(colors)/sizeof(char*));
           trk_attr.qc=color_name.at((color_index_+color_name.size())%color_name.size());
   
           RouteItem *item = new RouteItem(route_view_);
@@ -674,10 +662,6 @@ void MainWindow::open_file_slot()
     basename_=fn.right(fn.size()-fn.lastIndexOf('/')-1);
     //files_->addItem(basename_);
 
-    MapAttribute map_attr;
-    map_attr.name=basename_;
-    map_attr.color=i%(sizeof(colors)/sizeof(char*));
-    map_attr_[i]=map_attr;
   }
   parse_gpx_.clear();
   dirname_=fn.left(fn.lastIndexOf("/"));
@@ -990,7 +974,7 @@ void MainWindow::preview_without_save_slot()
     browser_->load(preview_fn_);
   }
   browser_->show();
-
+  DEBUG_LOG(preview_fn_+"\n");
 }
 
 void MainWindow::save_as_slot()

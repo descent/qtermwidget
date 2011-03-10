@@ -88,7 +88,6 @@ class MainWindow : public QMainWindow
     QPushButton *sel_rv_remove_all_, *sel_rv_remove_; // select route view
     QPushButton *rv_remove_all_, *rv_remove_;
     QPushButton *rv_save_to_html_;
-    map<int, MapAttribute> map_attr_;
     QFile qf_;
     QString points_;
     QString center_point_;
