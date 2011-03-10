@@ -94,7 +94,7 @@ bool qcolor2html_color_str(const QColor &qc, QString &html_color_str)
   return true;
 }
 
-MainWindow::MainWindow():QMainWindow(), browser_(0)
+MainWindow::MainWindow():QMainWindow()
 { 
   setWindowIcon(QIcon(":/images/window_icon.png"));
   open_cfg();
@@ -135,6 +135,7 @@ MainWindow::MainWindow():QMainWindow(), browser_(0)
   qDebug() << "QDir::currentPath(): " << QDir::currentPath();
   qDebug() << "QDir::homePath(): " << QDir::homePath();
   route_attr_ = new QTextEdit();
+  browser_ = new BrowserWindow(preview_fn_);
 }
 
 void MainWindow::closeEvent ( QCloseEvent * event )
@@ -553,7 +554,6 @@ void MainWindow::get_trk(const QString &fn, int index)
   }
 
   unsetCursor();
-  parse_gpx_.insert(fn);
 }
 
 void MainWindow::get_trk_info(QDomNode &n, const QString &tag_name)
@@ -663,7 +663,6 @@ void MainWindow::open_file_slot()
     //files_->addItem(basename_);
 
   }
-  parse_gpx_.clear();
   dirname_=fn.left(fn.lastIndexOf("/"));
   //QObject::connect(files_, SIGNAL(currentIndexChanged ( int )), this, SLOT(select_gpx_file(int)));
 
@@ -975,16 +974,13 @@ void MainWindow::preview_without_save_slot()
   preview_fn_.prepend("file://");
 #endif
   qDebug() << "preview_fn_ : " << preview_fn_;
-  if (browser_==0)
-    browser_ = new BrowserWindow(preview_fn_);
-  else
-  {
-    browser_->load(preview_fn_);
-  }
+
+  browser_->load(preview_fn_);
   browser_->show();
   DEBUG_LOG(preview_fn_+"\n");
 }
 
+#if 0
 void MainWindow::save_as_slot()
 {
   QDomNodeList nodes=dom_doc_.elementsByTagName("save_file_path");
@@ -1004,6 +1000,7 @@ void MainWindow::save_as_slot()
 
   save_file_slot();
 }
+#endif
 
 // calculate center point, but is minus coordinate,
 // the algorithm will calculate wrong center point.
@@ -1042,6 +1039,7 @@ void MainWindow::get_points(const QDomDocument &dom_doc)
   center_point_= c.toString(((sx+bx)/2), 'f', 10) + ',' + c.toString(((sy+by)/2), 'f', 10) ;
 }
 
+#if 0
 int MainWindow::write_to_save_file(const QString &w_fn)
 {
   QFile qf;
@@ -1062,16 +1060,6 @@ int MainWindow::write_to_save_file(const QString &w_fn)
     QString fn;
     fn=fn_list_.at(i);
     if (fn.isNull()) break;
-
-    if (!parse_gpx_.count(fn))
-    {
-      //qDebug() << "xx";
-      get_trk(fn_list_.at(i), i); 
-    }
-    else
-    {
-      //qDebug() << "yy";
-    }
 
     qf_.setFileName(fn);
     if (!qf_.open(QIODevice::ReadOnly))
@@ -1221,6 +1209,7 @@ void MainWindow::save_file_slot()
   write_to_save_file(file_name_);
 
 }
+#endif
 
 void MainWindow::change_save_file_offset ( int index )
 {

@@ -48,7 +48,7 @@ BrowserWindow::BrowserWindow(const QString &url, QWebPage *webPage,
     webView = new QWebView;
     if (webPage)
         webView->setPage(webPage);
-    load(url);
+    //load(url);
 
     createActions();
     createToolBar();

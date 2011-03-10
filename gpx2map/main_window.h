@@ -7,7 +7,6 @@
 
 
 #include <map>
-#include <set>
 
 using namespace std;
 
@@ -80,7 +79,6 @@ class MainWindow : public QMainWindow
     //QByteArray template_data;
     QTreeWidget *route_view_, *select_route_view_;
     BrowserWindow *browser_;
-    set<QString> parse_gpx_; // get track in these GPX files.
     QStringList fn_list_;
     QPushButton *select_route_button_;
     QPushButton *preview_button_;
@@ -126,8 +124,8 @@ class MainWindow : public QMainWindow
     void open_color_dialog(QTreeWidgetItem * item, int column);
     void select_gpx_file(int index);
     void open_file_slot();
-    void save_file_slot();
-    void save_as_slot();
+    //void save_file_slot();
+    //void save_as_slot();
     void change_save_file_offset ( int index );
     void preview_without_save_slot();
 
