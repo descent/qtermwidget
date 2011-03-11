@@ -110,16 +110,17 @@ MainWindow::MainWindow():QMainWindow()
 
   setFont(f);
 
-  setCentralWidget(formGroupBox);
+  setCentralWidget(splitter_);
   //file_menu_ = menuBar()->addMenu(tr("&File"));
-  //ADD_ACTION(file_menu_, open_file_, "&Open File", open_file_slot )
   //ADD_ACTION(file_menu_, save_file_, "&Save", save_file_slot )
   //ADD_ACTION(file_menu_, save_as_, "Save &As", save_as_slot )
 
   setting_menu_ = menuBar()->addMenu(tr("&Setting"));
   ADD_ACTION(setting_menu_, change_font_, "&Font", change_font_slot);
   ADD_ACTION(setting_menu_, show_debug_log_, "&Show Debug Log", show_debug_log_slot);
-  //backup_file_->setCheckable(true);
+  ADD_ACTION(setting_menu_, orientation_, "&Orientation Vertical", switch_orientation_slot);
+  orientation_->setCheckable(true);
+  orientation_->setChecked(true);
 
   nodes=dom_doc_.elementsByTagName("backup_file");
   e = nodes.at(0).toElement(); // try to convert the node to an element.
@@ -947,6 +948,17 @@ void MainWindow::create_html_file(QByteArray &template_data)
   //qDebug() << "template_data: " << template_data;
 }
 
+void MainWindow::switch_orientation_slot()
+{
+  Qt::Orientation o=Qt::Horizontal;
+
+  if (orientation_->isChecked())
+    o=Qt::Vertical;
+  else
+    o=Qt::Horizontal;
+  splitter_->setOrientation(o);
+}
+
 void MainWindow::preview_without_save_slot()
 {
   QByteArray template_data;
@@ -1248,9 +1260,14 @@ void MainWindow::create_form_groupbox()
   google_map_key_ = new QLineEdit(e.attribute("k1"), this);
 
   
-  formGroupBox = new QGroupBox(tr("Select GPX Files"));
+  formGroupBox = new QGroupBox(tr("Origianl Route"));
+  sel_group_box_ = new QGroupBox(tr("Select Route"));
 
   formGroupBox->setLayout(layout);
+  splitter_ = new QSplitter();
+  splitter_->addWidget(formGroupBox);
+  splitter_->addWidget(sel_group_box_);
+  splitter_->setOrientation(Qt::Vertical);
 
   text_edit_ = new QTextEdit(0);
   //layout->addWidget(text_edit_);
@@ -1262,8 +1279,9 @@ void MainWindow::create_form_groupbox()
   route_view_->setHeaderLabels(labels);
   route_view_->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
-  QBoxLayout *v_layout = new QBoxLayout(QBoxLayout::TopToBottom);
+  //splitte->addWidget(route_view_);
 
+  QBoxLayout *v_layout = new QBoxLayout(QBoxLayout::TopToBottom);
   layout->addLayout(v_layout);
 
   rv_add_ = new QPushButton(tr("add gpx files"));
@@ -1278,21 +1296,21 @@ void MainWindow::create_form_groupbox()
   select_route_button_ = new QPushButton(tr("select routes"));
   v_layout->addWidget(select_route_button_);
 
+  QBoxLayout *layout1 = new QBoxLayout(QBoxLayout::LeftToRight);
+  sel_group_box_->setLayout(layout1);
 
-  //QTreeWidgetItem *item = new QTreeWidgetItem(route_view_);
-  //item->setText(0, "route 1");
-  //item->setText(1, "route color 1");
   select_route_view_ = new QTreeWidget(this);
   //select_route_view_->setSelectionMode(QAbstractItemView::MultiSelection);
   labels.clear();
   labels << tr("No") << tr("route name") << tr("modified route name") << tr("route color") << tr("file") << tr("attr");
   select_route_view_->setHeaderLabels(labels);
   select_route_view_->setSelectionMode(QAbstractItemView::ExtendedSelection);
-  layout->addWidget(select_route_view_);
+  //splitte->addWidget(select_route_view_);
+  layout1->addWidget(select_route_view_);
 
   QBoxLayout *v_layout1 = new QBoxLayout(QBoxLayout::TopToBottom);
 
-  layout->addLayout(v_layout1);
+  layout1->addLayout(v_layout1);
 
   v_layout1->addWidget(new QLabel(tr("google map key")));
   v_layout1->addWidget(google_map_key_);

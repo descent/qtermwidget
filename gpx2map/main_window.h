@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QString>
 #include <QTreeWidget>
+#include <QSplitter>
 
 
 #include <map>
@@ -76,7 +77,7 @@ class MainWindow : public QMainWindow
 
   private:
     //QString preview_fn_;
-    //QByteArray template_data;
+    QSplitter *splitter_;
     QTreeWidget *route_view_, *select_route_view_;
     BrowserWindow *browser_;
     QStringList fn_list_;
@@ -91,9 +92,9 @@ class MainWindow : public QMainWindow
     QString center_point_;
     //QComboBox *files_, *track_list_;
     QLineEdit *route_name_, *google_map_key_, *point_, *position_, *direction_;
-    QGroupBox *formGroupBox;
+    QGroupBox *formGroupBox, *sel_group_box_;
     QMenu *file_menu_, *edit_menu_, *help_menu_;
-    //QAction *open_file_, *save_file_, *save_as_;
+    QAction *orientation_;
     QAction *about_;
     QMenu *setting_menu_;
     QAction *change_font_, *show_debug_log_;
@@ -116,6 +117,7 @@ class MainWindow : public QMainWindow
     void closeEvent ( QCloseEvent * event );
 
   public slots:
+    void switch_orientation_slot();
     void modify_route_name_slot(QTreeWidgetItem * item, int column);
     void rv_save_to_html_slot();
     void select_route_slot();
