@@ -948,6 +948,29 @@ void MainWindow::create_html_file(QByteArray &template_data)
   //qDebug() << "template_data: " << template_data;
 }
 
+void MainWindow::dragEnterEvent(QDragEnterEvent *event)
+{
+  qDebug() << "drag";
+  if (event->mimeData()->hasFormat("text/uri-list"))
+    event->acceptProposedAction();
+}
+
+void MainWindow::dropEvent(QDropEvent *event)
+{
+  QList<QUrl> urls = event->mimeData()->urls();
+  if (urls.isEmpty())
+    return;
+  QList<QUrl>::const_iterator it=urls.begin();
+  for (; it!=urls.end() ; ++it)
+  {
+    qDebug() << it->toLocalFile();
+    get_trk(it->toLocalFile(), 0); // get the first file all trk name
+  }
+  //QString fileName = urls.first().toLocalFile();
+	
+}
+
+
 void MainWindow::switch_orientation_slot()
 {
   Qt::Orientation o=Qt::Horizontal;

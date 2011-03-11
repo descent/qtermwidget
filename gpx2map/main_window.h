@@ -115,6 +115,8 @@ class MainWindow : public QMainWindow
 
   protected:
     void closeEvent ( QCloseEvent * event );
+    void dragEnterEvent(QDragEnterEvent *event);
+    void dropEvent(QDropEvent *event);
 
   public slots:
     void switch_orientation_slot();
