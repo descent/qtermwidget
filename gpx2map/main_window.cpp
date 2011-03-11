@@ -975,9 +975,9 @@ void MainWindow::preview_without_save_slot()
 #endif
   qDebug() << "preview_fn_ : " << preview_fn_;
 
+  DEBUG_LOG(preview_fn_+"\n");
   browser_->load(preview_fn_);
   browser_->show();
-  DEBUG_LOG(preview_fn_+"\n");
 }
 
 #if 0
@@ -1363,6 +1363,7 @@ void MainWindow::rv_remove_slot()
     RouteItem *ri = (RouteItem*)select_items.at(i);
     delete ri;
   }
+  update_no(route_view_, RV_NO);
 
 }
 
@@ -1375,6 +1376,7 @@ void MainWindow::sel_rv_remove_slot()
     RouteItem *ri = (RouteItem*)select_items.at(i);
     delete ri;
   }
+  update_no(select_route_view_, SEL_RV_NO);
 }
 
 void MainWindow::rv_remove_all_slot()
@@ -1385,6 +1387,19 @@ void MainWindow::rv_remove_all_slot()
 void MainWindow::sel_rv_remove_all_slot()
 {
   select_route_view_->clear();
+}
+
+void MainWindow::update_no(QTreeWidget *view, int index)
+{
+  QTreeWidgetItemIterator it(view);
+
+  int i=0;
+  while(*it)
+  {
+    (*it)->setText(index, QString("%1").arg(i++));
+    ++it;
+  }
+
 }
 
 void MainWindow::select_route_slot()
@@ -1403,13 +1418,14 @@ void MainWindow::select_route_slot()
 
   }
 
+  int item_count=select_route_view_->topLevelItemCount();
   for (int i=0; i < select_items.count() ; ++i)
   {
     RouteItem *ri = (RouteItem*)select_items.at(i);
     RouteItem *item = new RouteItem(select_route_view_);
-    item->setText(0, QString("%1").arg(i));
-    item->setText(1, select_items.at(i)->text(1));
-    item->setText(2, select_items.at(i)->text(1));
+    item->setText(SEL_RV_NO, QString("%1").arg(item_count+i));
+    item->setText(SEL_RV_OR, select_items.at(i)->text(1));
+    item->setText(SEL_RV_MRN, select_items.at(i)->text(1));
     item->setText(SEL_RV_FILE, select_items.at(i)->text(RV_FILE));
     item->setText(SEL_RV_ATTR, select_items.at(i)->text(RV_ATTR));
     if (ri->text(RV_ATTR)=="wpt")

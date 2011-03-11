@@ -103,6 +103,8 @@ class MainWindow : public QMainWindow
     int color_index_;
     QDomDocument dom_doc_;
     map<QString, FileTrkAttr*> file_trk_attr_;
+    void update_no(QTreeWidget *view, int index);
+
 
     void create_html_file(QByteArray &template_data);
     void fill_data(int offset=0x4e10);
