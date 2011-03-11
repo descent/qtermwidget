@@ -72,6 +72,7 @@ const QString config_fn="/.gpx2map.cfg";
 #define DEBUG_LOG(str) \
 { \
   text_edit_->insertPlainText(str); \
+  text_edit_->insertPlainText("\n"); \
 }
 
 #define ADD_ACTION(menu, qa_obj, qa_name, slot) \
@@ -953,7 +954,12 @@ void MainWindow::preview_without_save_slot()
 
   //qDebug() << "xx template_data: " << template_data;
   QFile temp_qf;
+#ifdef Q_OS_WIN32
   preview_fn_ = QFSFileEngine::tempPath() + "t_view.html";
+#else
+  preview_fn_ = QFSFileEngine::tempPath() + "t_view.html";
+#endif
+  DEBUG_LOG(QFSFileEngine::tempPath());
 
   temp_qf.setFileName(preview_fn_);
   if (!temp_qf.open(QIODevice::WriteOnly))
@@ -975,7 +981,8 @@ void MainWindow::preview_without_save_slot()
 #endif
   qDebug() << "preview_fn_ : " << preview_fn_;
 
-  DEBUG_LOG(preview_fn_+"\n");
+  DEBUG_LOG(preview_fn_);
+  browser_->setWindowTitle(preview_fn_);
   browser_->load(preview_fn_);
   browser_->show();
 }
