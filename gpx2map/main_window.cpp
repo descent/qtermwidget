@@ -450,7 +450,6 @@ void MainWindow::get_trk(const QString &fn, int index)
 {
   if (fn.isNull()) return;
 
-  setCursor(Qt::WaitCursor);
   QFile qf;
   qf.setFileName(fn);
   if (!qf.open(QIODevice::ReadOnly))
@@ -466,7 +465,7 @@ void MainWindow::get_trk(const QString &fn, int index)
   if (!doc.setContent(&qf)) 
   {
     qf.close();
-    QMessageBox::warning(this, tr("gpx2map"), tr("%1 is not a gpx format file.").arg(file_name_));
+    QMessageBox::warning(this, tr("gpx2map"), tr("%1 is not a gpx format file.").arg(fn));
     return;
   }
   qf.close();
@@ -475,6 +474,7 @@ void MainWindow::get_trk(const QString &fn, int index)
   QString trk_name;
 
 
+  setCursor(Qt::WaitCursor);
   if ((tag_name=="rtept") || (tag_name=="trkpt"))
   {
     if (tag_name=="rtept")
