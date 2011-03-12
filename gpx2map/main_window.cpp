@@ -631,47 +631,24 @@ void MainWindow::open_file_slot()
   QDomElement e = nodes.at(0).toElement(); // try to convert the node to an element.
 
   if (dirname_.isNull())
-  {
     dirname_= e.attribute("path");
-  }
-  
 
   //file_name_ = QFileDialog::getOpenFileName(this, tr("Open GPX"), dirname_);
   fn_list_ = QFileDialog::getOpenFileNames(this, tr("Open GPX"), dirname_, "*.gpx");
   if (fn_list_.length()==0) return;
 
   color_index_ = 1;
-
-  //QObject::disconnect(files_, SIGNAL(currentIndexChanged ( int )), this, SLOT(select_gpx_file(int)));
-  //files_->clear();
-
-  QString fn;
-
-#if 0
-  int add_file_trk_attr_count=fn_list_.length()-file_trk_attr_.size();
-
-  for (int i=0 ; i < add_file_trk_attr_count ; ++i)
-  { // add new FileTrkAttr* to file_trk_attr_
-    file_trk_attr_.push_back(new FileTrkAttr);
-  }
-#endif
-
-
   for (int i=0 ; i < fn_list_.length() ; ++i)
   {
-    fn=fn_list_.at(i);
-    file_trk_attr_[fn]=new FileTrkAttr;
-    basename_=fn.right(fn.size()-fn.lastIndexOf('/')-1);
-    //files_->addItem(basename_);
-
+    get_trk(fn_list_.at(i), 0); // get the first file all trk name
   }
-  dirname_=fn.left(fn.lastIndexOf("/"));
-  //QObject::connect(files_, SIGNAL(currentIndexChanged ( int )), this, SLOT(select_gpx_file(int)));
+  QString fn;
 
-  get_trk(fn_list_.at(0), 0); // get the first file all trk name
+  fn=fn_list_.at(0);
+  dirname_=fn.left(fn.lastIndexOf("/"));
+  e.setAttribute("path", dirname_);
 
   text_edit_->clear();
-  e.setAttribute("path", dirname_);
   statusBar()->showMessage(tr("open"));
 }
 
@@ -1022,27 +999,6 @@ void MainWindow::preview_without_save_slot()
   browser_->show();
 }
 
-#if 0
-void MainWindow::save_as_slot()
-{
-  QDomNodeList nodes=dom_doc_.elementsByTagName("save_file_path");
-  QDomElement e = nodes.at(0).toElement(); // try to convert the node to an element.
-
-  if (save_dirname_.isNull())
-  {
-    save_dirname_= e.attribute("path");
-  }
-
-  backup_fn_= file_name_ + ".bak";
-  file_name_ = QFileDialog::getSaveFileName(this, tr("Save As"), save_dirname_);
-  if (file_name_.isNull()) return;
-  save_dirname_=file_name_.left(file_name_.lastIndexOf("/"));
-  basename_=file_name_.right(file_name_.size() - file_name_.lastIndexOf('/')-1);
-  e.setAttribute("path", save_dirname_);
-
-  save_file_slot();
-}
-#endif
 
 // calculate center point, but is minus coordinate,
 // the algorithm will calculate wrong center point.
@@ -1079,191 +1035,6 @@ void MainWindow::get_points(const QDomDocument &dom_doc)
   qDebug() << "bx: " << c.toString(bx,'f',10) << " by: " << c.toString(by,'f',10) << "by: " << c.toString(sx,'f',10) << "sy: " << c.toString(sy,'f',10);
 
   center_point_= c.toString(((sx+bx)/2), 'f', 10) + ',' + c.toString(((sy+by)/2), 'f', 10) ;
-}
-
-#if 0
-int MainWindow::write_to_save_file(const QString &w_fn)
-{
-  QFile qf;
-  QFile template_file;
-
-  qDebug() << "w_fn: " << w_fn;
-  // update FileTrkAttr
-  //load_gpx_attr(track_list_->currentIndex());
-
-
-  points_ = "";
-
-  QString write_trk;
-
-  int t=1; // for track index
-  for (int i=0 ; i < fn_list_.length() ; ++i)
-  {
-    QString fn;
-    fn=fn_list_.at(i);
-    if (fn.isNull()) break;
-
-    qf_.setFileName(fn);
-    if (!qf_.open(QIODevice::ReadOnly))
-    {
-      // ref : Qt-4.6.2/examples/xml/dombookmarks/mainwindow.cpp
-      QMessageBox::warning(this, tr("gpx2map"),
-                             tr("Cannot read file %1:\n%2.")
-                             .arg(file_name_)
-                             .arg(qf_.errorString()));
-      break;
-    }
-
-
-    QDomDocument doc("mydocument");
-
-    if (!doc.setContent(&qf_)) 
-    {
-      qf_.close();
-      QMessageBox::warning(this, tr("gpx2map"), tr("%1 is not a gpx format file.").arg(file_name_));
-      break;
-    }
-    qf_.close();
-
-    // print out the element names of all elements that are direct children
-    // of the outermost element.
-    QDomElement docElem = doc.documentElement();
-    //cout << "root tagname: " << qPrintable(docElem.tagName()) << endl; // the node really is an element.
-
-    QDomNode n = docElem.firstChild();
-    //FileTrkAttr* cur_file_trk_attr = file_trk_attr_[fn];
-
-    #if 0
-    // produce the html code
-    t = 1; trk_info[t] = [];
-    trk_info[t]['name'] = '南港-萬芳醫院'; trk_info[t]['desc'] = ''; trk_info[t]['clickable'] = true;
-    trk_info[t]['color'] = '#E60000'; trk_info[t]['width'] = 3; trk_info[t]['opacity'] = 0.8;
-    trk_info[t]['outline_color'] = '#000000'; trk_info[t]['outline_width'] = 0; trk_info[t]['fill_color'] = '#E60000'; trk_info[t]['fill_opacity'] = 0;
-    trk_segments[t] = [];
-    #endif
-    //cout << "[";
-    //const char color[]="#E60000";
-    
-    FileTrkAttr* cur_file_trk_attr = 0;
-
-    if (file_trk_attr_.count(fn))
-      cur_file_trk_attr = file_trk_attr_[fn];
-
-    for (int i=0 ; i < cur_file_trk_attr->size() ; ++i)
-    {
-      QString hc;
-
-      MapAttribute trk_attr=(*cur_file_trk_attr)[i];
-      qcolor2html_color_str((*cur_file_trk_attr)[i].qc, hc);
-
-      write_trk += QString("t = %1; trk_info[t] = []; \
-    trk_info[t]['name'] = '%2'; trk_info[t]['desc'] = ''; trk_info[t]['clickable'] = true; \
-    trk_info[t]['color'] = '%3'; trk_info[t]['width'] = 3; trk_info[t]['opacity'] = 0.8; \
-    trk_info[t]['outline_color'] = '#000000'; trk_info[t]['outline_width'] = 0; trk_info[t]['fill_color'] = '#E60000'; trk_info[t]['fill_opacity'] = 0; \
-    trk_segments[t] = [];").arg(t).arg(trk_attr.name).arg(hc);
-	//qDebug() << "trk_attr.points: " << trk_attr.points;
-
-      write_trk += "trk_segments[t].push({points:[" + trk_attr.points + \
-	            QString("]}); \
-                \nGV_Draw_Track(t); \
-	        t = %1; GV_Add_Track_to_Tracklist({bullet:'- ',name:trk_info[t]['name'],desc:trk_info[t]['desc'],color:trk_info[t]['color'],number:t});\n").arg(t);
-      ++t;
-
-    }
-
-
-    get_points(doc);
-
-    //search_all(n, check_gpx_type(doc));
-
-#if 0
-    t = 1; GV_Add_Track_to_Tracklist({bullet:'- ',name:trk_info[t]['name'],desc:trk_info[t]['desc'],color:trk_info[t]['color'],number:t});
-    t = 2; GV_Add_Track_to_Tracklist({bullet:'- ',name:trk_info[t]['name'],desc:trk_info[t]['desc'],color:trk_info[t]['color'],number:t});
-
-#endif
-    //cout << "]" << endl;
-
-  }
-
-  QString template_fn="template.html";
-  template_file.setFileName(template_fn);
-  if (!template_file.open(QIODevice::ReadOnly))
-  {
-    QMessageBox::warning(this, tr("gpx2map"),
-                             tr("Cannot open file %1:\n%2.")
-                             .arg(template_fn)
-                             .arg(template_file.errorString()));
-
-    return -1;
-  }
-
-  QByteArray template_data=template_file.readAll();
-  int pos=0;
-
-  // replace ##, center point
-  pos=template_data.indexOf("##");
-  template_data.replace(pos, 2, center_point_.toAscii());
-
-  // replace ^^
-  pos=template_data.indexOf("^^");
-  template_data.replace(pos, 2, google_map_key_->text().toAscii());
-
-  // replace @@
-  pos=0;
-  pos=template_data.indexOf("@@");
-  qDebug() << "pos: " << pos;
-  //template_data.replace(pos, 2, points_.toAscii());
-  template_data.replace(pos, 2, write_trk.toUtf8());
-  template_file.close();
-
-  text_edit_->insertPlainText(template_data);
-
-  qf.setFileName(w_fn);
-  if (!qf.open(QIODevice::WriteOnly))
-  {
-    QMessageBox::warning(this, tr("gpx2map"),
-                             tr("Cannot save file %1:\n%2.")
-                             .arg(w_fn)
-                             .arg(qf.errorString()));
-
-
-    return -1;
-  }
-  int w_len=qf.write(template_data);
-
-#if 0
-  QMessageBox::warning(this, tr("gpx2map"),
-                             tr("write save file %1:\n.")
-                             .arg(w_fn));
-#endif
-
-  qf.close();
-  preview_fn_ = w_fn;
-  return 0;
-}
-
-void MainWindow::save_file_slot()
-{
-  if (backup_fn_.isEmpty())
-    backup_fn_= file_name_ + ".bak";
-
-  // wirte to file
-  write_to_save_file(file_name_);
-
-}
-#endif
-
-void MainWindow::change_save_file_offset ( int index )
-{
-
-}
-
-void MainWindow::select_gpx_file(int index)
-{
-#if 0
-  get_trk(dirname_ + "/" + files_->itemText(index), index); // get the first file all trk name
-  formGroupBox->setTitle(files_->currentText());
-#endif
 }
 
 

@@ -100,7 +100,7 @@ class MainWindow : public QMainWindow
     QAction *change_font_, *show_debug_log_;
  
     QByteArray qba_;
-    QString save_dirname_, dirname_, basename_, file_name_, backup_fn_;
+    QString save_dirname_, dirname_, file_name_, backup_fn_;
     int color_index_;
     QDomDocument dom_doc_;
     map<QString, FileTrkAttr*> file_trk_attr_;
@@ -128,11 +128,7 @@ class MainWindow : public QMainWindow
     void sel_rv_remove_all_slot();
     void sel_rv_remove_slot();
     void open_color_dialog(QTreeWidgetItem * item, int column);
-    void select_gpx_file(int index);
     void open_file_slot();
-    //void save_file_slot();
-    //void save_as_slot();
-    void change_save_file_offset ( int index );
     void preview_without_save_slot();
 
 
