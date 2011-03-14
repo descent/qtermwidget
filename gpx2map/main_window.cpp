@@ -138,6 +138,7 @@ MainWindow::MainWindow():QMainWindow()
   qDebug() << "QDir::homePath(): " << QDir::homePath();
   route_attr_ = new QTextEdit();
   browser_ = new BrowserWindow(preview_fn_);
+  setAcceptDrops(true);
 }
 
 void MainWindow::closeEvent ( QCloseEvent * event )
@@ -930,6 +931,7 @@ void MainWindow::dragEnterEvent(QDragEnterEvent *event)
   qDebug() << "drag";
   if (event->mimeData()->hasFormat("text/uri-list"))
     event->acceptProposedAction();
+  QMainWindow::dragEnterEvent(event);
 }
 
 void MainWindow::dropEvent(QDropEvent *event)
@@ -945,6 +947,7 @@ void MainWindow::dropEvent(QDropEvent *event)
   }
   //QString fileName = urls.first().toLocalFile();
 	
+  QMainWindow::dropEvent(event);
 }
 
 
@@ -1067,6 +1070,8 @@ void MainWindow::create_form_groupbox()
   //layout->addWidget(text_edit_);
 
   route_view_ = new QTreeWidget(this);
+  //route_view_->setAcceptDrops(true);
+
   layout->addWidget(route_view_);
   QStringList labels;
   labels << tr("No") << tr("route name") << tr("route color") << tr("file") << tr("attr");
@@ -1094,6 +1099,7 @@ void MainWindow::create_form_groupbox()
   sel_group_box_->setLayout(layout1);
 
   select_route_view_ = new QTreeWidget(this);
+  //select_route_view_->setAcceptDrops(true);
   //select_route_view_->setSelectionMode(QAbstractItemView::MultiSelection);
   labels.clear();
   labels << tr("No") << tr("route name") << tr("modified route name") << tr("route color") << tr("file") << tr("attr");
