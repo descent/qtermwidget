@@ -4,6 +4,9 @@
 #include <QTreeWidgetItem>
 
 #include <map>
+#include <vector>
+
+using namespace std;
 
 enum {RV_NO=0, RV_OR, RV_COLOR, RV_FILE, RV_ATTR}; // OR == original route name
 enum {SEL_RV_NO=0, SEL_RV_OR, SEL_RV_MRN, SEL_RV_COLOR, SEL_RV_FILE, SEL_RV_ATTR};
@@ -23,6 +26,8 @@ struct WptAttribute
 };
 #endif
 
+typedef pair<QString, QString> Point;
+
 struct MapAttribute
 {
   QString name, desc, clickable, width, opacity;
@@ -31,6 +36,7 @@ struct MapAttribute
   QColor qc;
   QString points;
   QString type;
+  vector<Point> points_;
 };
 
 

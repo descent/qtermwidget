@@ -19,11 +19,13 @@ QMAKE_INFO_PLIST = Info_mac.plist
 
 HEADERS = main_window.h \
           route_item.h \
+          point_view.h \
           browserwindow.hpp \
 	  kuhn_munkres.hpp \
 	  alt_key.hpp
 
 SOURCES	= main_window.cpp \
+          point_view.cpp \
           browserwindow.cpp \
 	  kuhn_munkres.cpp \
 	  alt_key.cpp \

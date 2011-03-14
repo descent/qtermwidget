@@ -139,6 +139,7 @@ MainWindow::MainWindow():QMainWindow()
   route_attr_ = new QTextEdit();
   browser_ = new BrowserWindow(preview_fn_);
   setAcceptDrops(true);
+  pv_ = new PointView(0);
 }
 
 void MainWindow::closeEvent ( QCloseEvent * event )
@@ -524,7 +525,7 @@ void MainWindow::get_trk(const QString &fn, int index)
   	  color_index_+=19;
   
   	  // current code, points will do many copy time.
-          get_trk_points(n, tag_name, trk_attr.points);
+          get_trk_points(n, tag_name, trk_attr);
           trk_attr.points.remove(trk_attr.points.length()-1, 1); // remove last ,
   
   	  item->set_attr(trk_attr);
@@ -771,8 +772,9 @@ void MainWindow::get_trk_name(QDomNode &node, QString &trk_name)
   }
 }
 
-void MainWindow::get_trk_points(QDomNode &n, const QString &tag_name, QString &points)
+void MainWindow::get_trk_points(QDomNode &n, const QString &tag_name, MapAttribute &trk_attr)
 {
+  QString &points=trk_attr.points;
   static bool a_trk_seg=false;
   //qDebug() << "tag_name: " << tag_name;
   while(!n.isNull()) 
@@ -799,6 +801,7 @@ void MainWindow::get_trk_points(QDomNode &n, const QString &tag_name, QString &p
       {
         //qDebug() << "3"; 
 	points += ("[" + e.attribute("lat") + "," + e.attribute("lon") + "],");
+        trk_attr.points_.push_back(make_pair(e.attribute("lat"), e.attribute("lon")));
 	//qDebug() << e.attribute("lat") + "," + e.attribute("lon");
 
 	//text_edit_->insertPlainText(e.attribute("lon"));
@@ -806,7 +809,7 @@ void MainWindow::get_trk_points(QDomNode &n, const QString &tag_name, QString &p
          QDomNode node = e.firstChild();
          if(!node.isNull()) 
 	 {
-           get_trk_points(node, tag_name, points);
+           get_trk_points(node, tag_name, trk_attr);
 	 }
 	 else
 	 {
@@ -1294,6 +1297,9 @@ void MainWindow::open_color_dialog(QTreeWidgetItem * item, int column)
       route_attr_->insertPlainText(ra.points);
     }
     route_attr_->show();
+
+    pv_->set_point(ra.points_);
+    pv_->show();
 
     return;
   }

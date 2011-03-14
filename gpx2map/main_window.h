@@ -9,6 +9,8 @@
 
 #include <map>
 
+#include "point_view.h"
+
 using namespace std;
 
 #if 1
@@ -63,9 +65,11 @@ class MainWindow : public QMainWindow
     void backup_file();
     QTextEdit *text_edit_;
     QTextEdit *route_attr_;
+    PointView *pv_;
+
     void search_all(QDomNode &n, const QString &tag_name);
     void get_wpt(const QDomNode &node, WptAttribute &wpt_attr);
-    void get_trk_points(QDomNode &n, const QString &tag_name, QString &points);
+    void get_trk_points(QDomNode &n, const QString &tag_name, MapAttribute &trk_attr);
     void get_trk_name(QDomNode &node, QString &trk_name);
     void get_trk_info(QDomNode &n, const QString &tag_name);
     void get_points(const QDomDocument &dom_doc);
