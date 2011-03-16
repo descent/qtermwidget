@@ -187,6 +187,9 @@ void MainWindow::closeEvent ( QCloseEvent * event )
     event->ignore();
   }
 #endif
+  delete text_edit_;
+  delete route_attr_;
+  delete pv_;
 }
 
 void MainWindow::open_cfg()
