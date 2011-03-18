@@ -140,6 +140,7 @@ MainWindow::MainWindow():QMainWindow()
   browser_ = new BrowserWindow(preview_fn_);
   setAcceptDrops(true);
   pv_ = new PointView(0);
+  ps_ = new PointDisplay(0);
 }
 
 void MainWindow::closeEvent ( QCloseEvent * event )
@@ -190,6 +191,7 @@ void MainWindow::closeEvent ( QCloseEvent * event )
   delete text_edit_;
   delete route_attr_;
   delete pv_;
+  delete ps_;
 }
 
 void MainWindow::open_cfg()
@@ -1148,6 +1150,7 @@ void MainWindow::create_form_groupbox()
   QObject::connect(rv_add_, SIGNAL(pressed( )), this, SLOT(open_file_slot()));
 
   QObject::connect(rv_save_to_html_, SIGNAL(pressed( )), this, SLOT(rv_save_to_html_slot()));
+  QObject::connect(point_view_button_, SIGNAL(pressed( )), this, SLOT(point_view_slot()));
 
 }
 
@@ -1301,8 +1304,7 @@ void MainWindow::open_color_dialog(QTreeWidgetItem * item, int column)
     }
     route_attr_->show();
 
-    pv_->set_point(ra.points_);
-    pv_->show();
+    //pv_->set_point(ra.points_);
 
     return;
   }
@@ -1344,6 +1346,23 @@ void MainWindow::modify_route_name_slot(QTreeWidgetItem * item, int column)
 void MainWindow::show_debug_log_slot()
 {
   text_edit_->show();
+}
+
+void MainWindow::point_view_slot()
+{
+  QList<QTreeWidgetItem *> select_items=route_view_->selectedItems();
+
+  QList<QTreeWidgetItem *>::const_iterator it = select_items.begin();
+
+  for (; it != select_items.end() ; ++it)
+  {
+    RouteItem *ri = (RouteItem*)(*it);
+    MapAttribute ra = ri->get_attr();
+    ps_->set_point(ra.points_);
+    ps_->show();
+  }
+
+
 }
 
 void MainWindow::change_font_slot()

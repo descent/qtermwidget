@@ -65,6 +65,7 @@ class MainWindow : public QMainWindow
     void backup_file();
     QTextEdit *text_edit_;
     QTextEdit *route_attr_;
+    PointDisplay *ps_;
     PointView *pv_;
 
     void search_all(QDomNode &n, const QString &tag_name);
@@ -123,6 +124,7 @@ class MainWindow : public QMainWindow
     void dropEvent(QDropEvent *event);
 
   public slots:
+    void point_view_slot();
     void switch_orientation_slot();
     void modify_route_name_slot(QTreeWidgetItem * item, int column);
     void rv_save_to_html_slot();
