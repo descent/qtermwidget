@@ -22,18 +22,28 @@ QSize PointView::sizeHint() const
 void PointView::paintEvent(QPaintEvent *event)
 {
   QPainter painter(this);
-  pen_.setWidth(10);
+  static unsigned count=0;
+  pen_.setWidth(5);
   painter.setPen(pen_);
+  qDebug() << "xxx paint: " << count++;
 
   vector<Point>::const_iterator it=points_.begin();
 
-  qDebug() << "xxx paint: ";
-  QPointF p1(60.3653542, 100.9007247);
-  QPointF p3(85.3653669, 120.9007376);
-  painter.scale(scale_, scale_);
-  painter.drawLine(p1, p3);
-  //painter.drawPoint(p1);
-  //painter.drawPoint(p3);
+  it = min_element(points_.begin(), points_.end());
+  bool ok;
+  //QPoint min_p(-((it->first).toDouble(&ok) * 10000000), -((it->second).toDouble(&ok)*10000000));
+  //QPoint min_p(((it->first).toDouble(&ok) * 10000000/scale_), ((it->second).toDouble(&ok)*10000000/scale_));
+  QPoint min_p(min_x_/scale_, min_y_/scale_);
+  qDebug() << " ## min_p: " << min_p;
+  it=points_.begin();
+  for (int i=0; it !=points_.end(); ++it, ++i)
+  {
+    QPoint p((it->first).toDouble(&ok) * 10000/scale_, (it->second).toDouble(&ok)*10000/scale_);
+    qDebug() << i << " ## p: " << p;
+    qDebug() << i << " ## p-min_p: " << p-min_p;
+    painter.drawPoint(p-min_p);
+  }
+
   #if 0
   QPointF p1(22.3653542, 20.9007247);
   QPointF p3(50.3653669, 300.9007376);
@@ -49,9 +59,6 @@ void PointView::paintEvent(QPaintEvent *event)
   #endif
 
 #if 0
-  it = min_element(points_.begin(), points_.end());
-  bool ok;
-  //QPoint min_p(-((it->first).toDouble(&ok) * 10000000), -((it->second).toDouble(&ok)*10000000));
   QPoint min_p(((it->first).toDouble(&ok) * 10000000), ((it->second).toDouble(&ok)*10000000));
   qDebug() << "min p: " << min_p;
 
@@ -93,7 +100,7 @@ void PointView::paintEvent(QPaintEvent *event)
 
 PointDisplay::PointDisplay(QWidget * parent, Qt::WindowFlags f):QFrame(parent, f)
 {
-  //splitter_ = new QSplitter(this);
+  splitter_ = new QSplitter(this);
 
   QBoxLayout *layout = new QBoxLayout(QBoxLayout::LeftToRight);
   pv_ = new PointView();
@@ -105,19 +112,20 @@ PointDisplay::PointDisplay(QWidget * parent, Qt::WindowFlags f):QFrame(parent, f
   scale_slider_ = new QSlider(Qt::Horizontal);
   scale_slider_->setMinimum(-10);
   scale_slider_->setMaximum(10);
-  //scale_slider_->setValue(5);
+  scale_slider_->setValue(1);
   
   scale_spin_box_ = new QSpinBox;
   scale_spin_box_->setMinimum(-10);
   scale_spin_box_->setMaximum(10);
+  scale_spin_box_->setValue(1);
   //layout->addWidget(pv_);
   scale_layout->addWidget(scale_spin_box_);
   scale_layout->addWidget(scale_slider_);
 
-  //splitter_->addWidget(pv_);
+  splitter_->addWidget(pv_);
 
-  //splitter_->setLayout(layout);
-  setLayout(layout);
+  splitter_->setLayout(layout);
+  //setLayout(layout);
   layout->addWidget(point_tree_view_);
   layout->addLayout(scale_layout);
   //layout->addWidget(scale_spin_box_);
@@ -138,12 +146,34 @@ void PointDisplay::change_scale_slot(int value)
   update();
 }
 
+void PointDisplay::closeEvent( QCloseEvent * event )
+{
+  point_tree_view_->clear();
+  scale_slider_->setValue(1);
+  scale_spin_box_->setValue(1);
+}
+
 void PointDisplay::set_point(const vector<Point> &p)
 {
+  qreal min_x=999.999, min_y=999.999;
+  qreal x=0.0, y=0.0;
   vector<Point>::const_iterator it=p.begin();
   for (; it!=p.end() ; ++it)
   {
+    bool ok;
+
     QTreeWidgetItem *item = new QTreeWidgetItem(point_tree_view_);
     item->setText(0, QString("(%1, %2)").arg(it->first).arg(it->second));
+    x=(it->first).toDouble(&ok);
+    if (min_x > x)
+      min_x=x;
+    y=(it->second).toDouble(&ok);
+    if (min_y > y)
+      min_y=y;
+
   }
+  pv_->set_point(p);
+  min_x*=10000;
+  min_y*=10000;
+  pv_->set_min_point(min_x, min_y);
 }
