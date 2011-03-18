@@ -86,6 +86,7 @@ class MainWindow : public QMainWindow
     QTreeWidget *route_view_, *select_route_view_;
     BrowserWindow *browser_;
     QStringList fn_list_;
+    QPushButton *point_view_button_;
     QPushButton *select_route_button_;
     QPushButton *preview_button_;
     QPushButton *rv_add_; // select route view add new route

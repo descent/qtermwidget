@@ -1103,6 +1103,9 @@ void MainWindow::create_form_groupbox()
   select_route_button_ = new QPushButton(tr("select routes"));
   v_layout->addWidget(select_route_button_);
 
+  point_view_button_ = new QPushButton(tr("point view"));
+  v_layout->addWidget(point_view_button_);
+
   QBoxLayout *layout1 = new QBoxLayout(QBoxLayout::LeftToRight);
   sel_group_box_->setLayout(layout1);
 
