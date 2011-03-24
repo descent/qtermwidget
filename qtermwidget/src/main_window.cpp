@@ -382,9 +382,11 @@ void MainWindow::about_slot()
 {
   QMessageBox msg_box;
   QString msg;
-#ifdef Q_OS_WIN32
-  QSysInfo::windowsVersion ()  ;
-  msg.sprintf("mac osX %s\nQT version: %s", win_version_str(), qVersion());
+#if defined(Q_CYGWIN_WIN)
+  msg.sprintf("windows/cygwin\nQT version: %s", qVersion());
+#elif defined(Q_WS_WIN) 
+  QSysInfo::windowsVersion()  ;
+  msg.sprintf("windows: %s\nQT version: %s", win_version_str(), qVersion());
   //QApplication::winVersion () ; // old version
 #elif defined(Q_OS_LINUX)
   msg.sprintf("Linux/X\nQT version: %s", qVersion());
