@@ -21,7 +21,40 @@ QSize PointView::sizeHint() const
 
 void PointView::paintEvent(QPaintEvent *event)
 {
+#if 0
+QPainter pn(this);  
+// Y- and X-Axis paint.  
+pn.setPen( Qt::blue );  
+pn.drawLine( width(), height() / 2 , 0, height() / 2 );  
+pn.drawLine( width() / 2, 0 , width() / 2, height() );  
+// Y- and X-Axis paint.
+
+QMatrix m;
+m.translate( width() / 2, height() / 2 );
+m.scale( 1, -1 );
+
+pn.setMatrix( m );
+//pn.setPen( Qt::NoPen );
+pn.setPen( Qt::red );  
+pn.setBrush( QBrush( Qt::blue, Qt::Dense4Pattern ) );
+pn.drawRect( -10, -10, 20, 20 );
+
+#else
   QPainter painter(this);
+
+
+// Y- and X-Axis paint.  
+painter.setPen( Qt::blue );  
+painter.drawLine( width(), height() / 2 , 0, height() / 2 );  
+painter.drawLine( width() / 2, 0 , width() / 2, height() );  
+// Y- and X-Axis paint.
+QMatrix m;
+m.translate( width() / 2, height() / 2 );
+m.scale( 1, -1 );
+
+painter.setMatrix( m );
+
+
   static unsigned count=0;
   pen_.setWidth(5);
   painter.setPen(pen_);
@@ -94,6 +127,7 @@ void PointView::paintEvent(QPaintEvent *event)
   painter.drawPoint(p2);
   painter.drawPoint(p3);
   painter.drawLine(p1, p3);
+#endif
 #endif
 }
 
