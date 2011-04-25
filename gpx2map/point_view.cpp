@@ -134,7 +134,10 @@ painter.setMatrix( m );
 
 PointDisplay::PointDisplay(QWidget * parent, Qt::WindowFlags f):QFrame(parent, f)
 {
-  splitter_ = new QSplitter(this);
+  QHBoxLayout *main_layout = new QHBoxLayout(this);
+
+  splitter_ = new QSplitter(0);
+  main_layout->addWidget(splitter_);
 
   QBoxLayout *layout = new QBoxLayout(QBoxLayout::LeftToRight);
   pv_ = new PointView();
